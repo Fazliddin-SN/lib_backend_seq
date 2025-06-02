@@ -30,20 +30,15 @@ const verifyToken = (req, res, next) => {
   }
 };
 // check authorization
-const roleGuard = (...roles) => {
+const roleGuard = (...role) => {
   return (req, res, next) => {
-    try {
-      const role = req.user.role;
-      if (!roles.includes(role)) {
-        return res.status(403).json({
-          error: "You are not allowed to do this operation!",
-        });
-      }
+    const userRole = req.user.role_id;
+    // console.log("user role ", userRole, role);
+
+    if (role.includes(userRole)) {
       next();
-    } catch (error) {
-      res.status(400).json({
-        error: error.message,
-      });
+    } else {
+      res.status(403).json({ error: "Forbidden" });
     }
   };
 };

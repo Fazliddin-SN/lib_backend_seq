@@ -2,8 +2,8 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("Notifications", {
-      notification_id: {
+    await queryInterface.createTable("Rentals", {
+      rental_id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
@@ -12,28 +12,31 @@ module.exports = {
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "Users",
-          key: "user_id",
-        },
       },
-      rental_id: {
+      book_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: "Rentals",
-          key: "rental_id",
-        },
-        onDelete: "CASCADE",
       },
-      type: {
-        type: Sequelize.TEXT,
+      owner_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
-      message: {
-        type: Sequelize.TEXT,
+      rental_date: {
+        type: Sequelize.DATE,
       },
-      is_read: {
-        type: Sequelize.BOOLEAN,
+      due_date: {
+        type: Sequelize.DATE,
+      },
+      return_date: {
+        type: Sequelize.DATE,
+      },
+      actual_return_date: {
+        type: Sequelize.DATE,
+      },
+      status_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        onDelete: "SET NULL",
       },
       createdAt: {
         allowNull: false,
@@ -46,6 +49,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("Notifications");
+    await queryInterface.dropTable("Rentals");
   },
 };

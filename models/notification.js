@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       rental_id: {
-        tyep: DataTypes.STRING,
+        type: DataTypes.INTEGER,
         references: {
           model: "Rentals",
           key: "rental_id",

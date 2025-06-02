@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  Linrary.init(
+  Library.init(
     {
       name: DataTypes.STRING,
       owner_id: DataTypes.INTEGER,

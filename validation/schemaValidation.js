@@ -2,7 +2,7 @@ const Joi = require("joi");
 
 // simple user register schema
 const adminRegisterSchema = Joi.object({
-  full_name: Joi.string().min(8).required().messages({
+  fullname: Joi.string().min(8).required().messages({
     "string.base": "Ism-familiya string bo'lishi kerak.",
     "string.empty": "Ism-familiya bo'sh bo'lmasligi kerak.",
     "string.min": "Ism-familiya kamida 5 harfdan iborat bo'lishi kerak.",
@@ -38,7 +38,7 @@ const adminRegisterSchema = Joi.object({
     "string.max": "Address ko'pi bilan 100 harf uzunligida bo'lishi kerak",
     "any.required": "Address talab qilinadi.",
   }),
-  phone_number: Joi.string()
+  phonenumber: Joi.string()
     .pattern(/^\+998\d{9}$/)
     .required()
     .messages({
@@ -48,16 +48,11 @@ const adminRegisterSchema = Joi.object({
         "Telefon raqami quydagi shaklda bo'lishi kerak: +998941234567",
       "any.required": "Telefon raqami talab qilinadi.",
     }),
-  role: Joi.string().valid("admin", "user", "owner").messages({
-    "string.base": "Role string shaklida bo'lishi kerak",
-    "any.only": "Role admin, user yoki owner shaklida bo'lishi kerak",
-    "any.required": "Role talab qilinadi.",
-  }),
 });
 
 // admin can register users schema
 const userSchema = Joi.object({
-  full_name: Joi.string().min(8).required().messages({
+  fullname: Joi.string().min(8).required().messages({
     "string.base": "Ism-familiya string bo'lishi kerak.",
     "string.empty": "Ism-familiya bo'sh bo'lmasligi kerak.",
     "string.min": "Ism-familiya kamida 5 harfdan iborat bo'lishi kerak.",
@@ -86,7 +81,7 @@ const userSchema = Joi.object({
         "Parol kamida bitta kichkina va katta harflardan va raqamlardan iborat bo'lishi kerak.",
       "any.required": "Parol talab qilinadi",
     }),
-  address: Joi.string().min(5).max(100).required().messages({
+  address: Joi.string().min(3).max(100).required().messages({
     "string.base": "Address string shaklida bo'lishi kerak",
     "string.empty": "Address bo'sh bo'lmasligi kerak",
     "string.min": "Address kamida 5 harf uzunligida bo'lishi kerak",

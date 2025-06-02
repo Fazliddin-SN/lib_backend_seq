@@ -2,32 +2,31 @@
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("../config/database");
-const errorHandler = require("../utils/customError");
+const morgan = require("morgan");
+
+const errorHandler = require("../utils/errorHandler");
+const indexRouter = require("../routes/index");
 const app = express();
 
 const PORT = process.env.PORT || 3018;
 
-app.use(
-  cors({
-    origin: /^http:\/\/localhost:\d+$/, // Allow all localhost ports
-    credentials: true, // Include this if you need cookies or authentication headers
-  })
-);
-
-connectDB();
+//MIDDLE FUNCTIONS
+app.use(cors());
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev"));
+// DATABASE CONNECTION
+connectDB();
+// ROUTE HADLER
+app.use("/", indexRouter);
 app.get("/", (req, res) => {
-  res.send("Financial Tracker Backend is running");
+  res.send("Library Backend is running");
 });
 
-app.get("/api/protected", verifyToken, requireRole("ADMIN"), (req, res) => {
-  res
-    .status(200)
-    .json({ message: "This is a protected route for admins only" });
-});
-
+// GLOBAL ERROR HANDLER
 app.use(errorHandler);
+
+// SERVER RUNNING
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
