@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const { CustomError } = require("../utils/customError");
-const { Library, User, BookStatus } = require("../models");
+const { Library, User, BookStatus, LibraryMember } = require("../models");
 
 exports.libraryController = {
   // GET ALL LIBRARIES
@@ -138,6 +138,181 @@ exports.libraryController = {
       });
     } catch (error) {
       console.error("Failed to delete library data by owner id ", error);
+      next(error);
+    }
+  },
+};
+
+// LIBRARY MEMBER CONTROLLER
+exports.libraryMemberController = {
+  // GET LIBRARY MEMBERS
+  async getLibMembers(req, res, next) {
+    const owner_id = req.user.id;
+    const page = req.query.page || 0;
+    const size = req.query.size || 50;
+
+    try {
+      // Build the where clause based on query parameters
+      const whereClause = {};
+
+      // CHECK LIBARY EXISTS WITH THIS OWNER ID
+      const library = await Library.findOne({ where: { owner_id } });
+      if (!library) {
+        throw new CustomError("Bu owner_id bilan kutubxona topilmadi. ", 404);
+      }
+
+      //if category_id is provided, add it to where clause
+      if (library) {
+        whereClause.library_id = library.id;
+      }
+      // GET MEMBERS
+      const { count, rows } = await LibraryMember.findAndCountAll({
+        where: whereClause,
+        order: [["id", "ASC"]],
+        offset: size * page,
+        limit: size,
+        include: [
+          { model: User, as: "user", attributes: { exclude: ["password"] } },
+        ],
+      });
+
+      res.status(200).json({
+        members: rows,
+        totalItems: count,
+        totalPages: Math.ceil(count / size),
+        currentPage: page,
+        status: "ok",
+      });
+    } catch (error) {
+      console.error("Failed to fech members ", error);
+      next(error);
+    }
+  },
+
+  // ADD NEW MEMBER
+  async addMember(req, res, next) {
+    const owner_id = req.user.id;
+    const body = req.body;
+
+    try {
+      // CHECK IF USERS EXISTS OR NOT WITH THIS EMAIL
+      const userExists = await User.findOne({
+        where: { email: body.email },
+      });
+      if (userExists) {
+        throw new CustomError(
+          "Bu email bilan allaqachon foydalanuvchi mavjud! Iltimos boshqa email bilan urinib ko'ring.",
+          400
+        );
+      }
+
+      // CHECK LIBARY EXISTS WITH THIS OWNER ID
+      const library = await Library.findOne({ where: { owner_id } });
+      if (!library) {
+        throw new CustomError("Bu owner_id bilan kutubxona topilmadi. ", 404);
+      }
+
+      // HASH THE PASSWORD AND CREATE NEW USER
+      const hashedPassword = await bcrypt.hash(body.password, 10);
+      const newUser = await User.create({ ...body, password: hashedPassword });
+      if (!newUser) {
+        throw new CustomError("Yangi Foydalanuvchi qo'shilmadi. ", 400);
+      }
+
+      //CREATE NEW LIBRARY MEMBER
+      const newMember = await LibraryMember.create({
+        user_id: newUser.id,
+        library_id: library.id,
+      });
+      if (!newMember) {
+        throw new CustomError("Yangi kutubxona azo qo'shilmadi. ", 400);
+      }
+
+      res.status(201).json({
+        message: "Yangi foydalanuvchi qo'shildi. ISM:" + body.fullname,
+        newMember,
+      });
+    } catch (error) {
+      console.error("Failed to add new member ", error);
+      next(error);
+    }
+  },
+
+  // UPDATE THE LIBRARY MEMBER
+  async updateLibMember(req, res, next) {
+    const { member_id } = req.params;
+    const owner_id = req.user.id;
+    const body = req.body;
+    try {
+      // CHECK LIBARY EXISTS WITH THIS OWNER ID
+      const library = await Library.findOne({ where: { owner_id } });
+      if (!library) {
+        throw new CustomError("Bu owner_id bilan kutubxona topilmadi. ", 404);
+      }
+
+      // FIND MEMBER
+      const member = await LibraryMember.findOne({
+        where: {
+          user_id: member_id,
+          library_id: library.id,
+        },
+      });
+      if (!member) {
+        throw new CustomError("Bu id bilan foydalanuvchi topilmadi.! ", 404);
+      }
+
+      // HASH THE PASSWORD AND CREATE NEW USER
+      const hashedPassword = await bcrypt.hash(body.password, 10);
+      const [updatedCount, [updatedUser]] = await User.update(
+        {
+          ...body,
+          password: hashedPassword,
+        },
+        { where: { id: member_id }, returning: true }
+      );
+      if (updatedCount === 0) {
+        throw new CustomError("Foydalanuvchi malumotlari tahrirlanmadi.", 400);
+      }
+
+      res.status(200).json({
+        message: `Azo malumotlari tahrirlandi. `,
+        updatedUser,
+      });
+    } catch (error) {
+      console.error("Failed to update member data ", error);
+      next(error);
+    }
+  },
+
+  //DELETE LIBRARY MEMBER BY ID
+  async removeMember(req, res, next) {
+    const { member_id } = req.params;
+    const owner_id = req.user.id;
+
+    try {
+      // CHECK LIBARY EXISTS WITH THIS OWNER ID
+      const library = await Library.findOne({ where: { owner_id } });
+      if (!library) {
+        throw new CustomError("Bu owner_id bilan kutubxona topilmadi. ", 404);
+      }
+
+      // REMOVE MEMBER
+      const deletCount = await LibraryMember.destroy({
+        where: {
+          user_id: member_id,
+          library_id: library.id,
+        },
+      });
+      if (deletCount === 0) {
+        throw new CustomError("Bu id bilan foydalanuvchi topilmadi.! ", 404);
+      }
+
+      res.status(200).json({
+        message: "A'zo muvaffaqiyatli o'chirildi.",
+        status: "ok",
+      });
+    } catch (error) {
+      console.error("Failed to remove member", error);
       next(error);
     }
   },

@@ -66,11 +66,20 @@ db.Library.belongsTo(db.User, {
   foreignKey: "owner_id", // make sure this matches your DB column
   as: "owner",
 });
-
 // One user can have many libraries
 db.User.hasMany(db.Library, {
   foreignKey: "owner_id",
   as: "libraries",
+});
+
+db.LibraryMember.belongsTo(db.User, {
+  foreignKey: "user_id",
+  as: "user", // 👈 this is important
+});
+
+db.User.hasMany(db.LibraryMember, {
+  foreignKey: "user_id",
+  as: "members", // optional alias
 });
 
 db.Book.belongsTo(db.Category, {

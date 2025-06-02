@@ -14,12 +14,12 @@ module.exports = (sequelize, DataTypes) => {
   User.init(
     {
       fullname: { type: DataTypes.STRING, allowNull: false },
-      username: { type: DataTypes.STRING, allowNull: false },
-      email: { type: DataTypes.STRING, allowNull: false },
+      username: { type: DataTypes.STRING, allowNull: false, unique: true },
+      email: { type: DataTypes.STRING, allowNull: false, unique: true },
       password: { type: DataTypes.TEXT, allowNull: false },
       address: { type: DataTypes.STRING, allowNull: false },
-      phonenumber: { type: DataTypes.STRING, allowNull: false },
-      role_id: { type: DataTypes.INTEGER, allowNull: false },
+      phonenumber: { type: DataTypes.STRING, allowNull: false, unique: true },
+      role_id: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 3 },
       avatar: { type: DataTypes.STRING },
       telegram_chat_id: { type: DataTypes.BIGINT },
     },

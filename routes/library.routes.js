@@ -1,6 +1,9 @@
 const express = require("express");
-
-const { libraryController } = require("../controllers/library.controller");
+const { validateUser } = require("../middlewares/validationMiddleware");
+const {
+  libraryController,
+  libraryMemberController,
+} = require("../controllers/library.controller");
 const { verifyToken, roleGuard } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
@@ -21,8 +24,37 @@ router.put("/:id", verifyToken, roleGuard(1, 2), libraryController.updateLib);
 router.delete("/:id", verifyToken, roleGuard(1), libraryController.deleteLib);
 
 // REGISTER MEMBERS
+router.post(
+  "/members",
+  validateUser,
+  verifyToken,
+  roleGuard(2),
+  libraryMemberController.addMember
+);
+
 // GET ALL MEMBERS
+router.get(
+  "/members/info",
+  verifyToken,
+  roleGuard(2),
+  libraryMemberController.getLibMembers
+);
+
 // UPDATE MEMBER
+router.put(
+  "/members/:member_id",
+  validateUser,
+  verifyToken,
+  roleGuard(2),
+  libraryMemberController.updateLibMember
+);
+
 // DELETE MEMBER
+router.delete(
+  "/members/:member_id",
+  verifyToken,
+  roleGuard(2),
+  libraryMemberController.removeMember
+);
 
 module.exports = router;

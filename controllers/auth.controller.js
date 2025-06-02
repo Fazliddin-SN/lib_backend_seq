@@ -31,7 +31,7 @@ exports.authController = {
       //GENERATE TOKEN
       const token = jwt.sign(
         {
-          id: newUser.user_id,
+          id: newUser.id,
           role_id: newUser.role_id,
           fullname: newUser.fullname,
         },
@@ -71,7 +71,7 @@ exports.authController = {
       //GENERATE TOKEN
       const token = jwt.sign(
         {
-          id: user.user_id,
+          id: user.id,
           role_id: user.role_id,
           fullname: user.fullname,
         },
