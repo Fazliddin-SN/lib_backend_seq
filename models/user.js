@@ -19,9 +19,9 @@ module.exports = (sequelize, DataTypes) => {
       password: { type: DataTypes.TEXT, allowNull: false },
       address: { type: DataTypes.STRING, allowNull: false },
       phonenumber: { type: DataTypes.STRING, allowNull: false },
-      role: { type: DataTypes.INTEGER, allowNull: false },
-      avatar: { type: DataTypes.STRING, allowNull: false },
-      telegram_chat_id: { type: DataTypes.BIGINT, allowNull: false },
+      role_id: { type: DataTypes.INTEGER, allowNull: false },
+      avatar: { type: DataTypes.STRING },
+      telegram_chat_id: { type: DataTypes.BIGINT },
     },
     {
       sequelize,

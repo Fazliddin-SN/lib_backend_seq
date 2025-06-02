@@ -57,9 +57,9 @@ db.Book.belongsTo(db.BookStatus, {
 // Define associations here
 db.User.belongsTo(db.UserRoles, {
   foreignKey: "role_id",
-  as: "users",
+  as: "role",
 });
-db.UserRoles.hasMany(db.User, { foreignKey: "category_id", as: "role" });
+db.UserRoles.hasMany(db.User, { foreignKey: "role_id", as: "users" });
 
 db.Book.belongsTo(db.Category, {
   foreignKey: "category_id",

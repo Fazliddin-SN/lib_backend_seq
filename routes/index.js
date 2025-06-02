@@ -6,4 +6,8 @@ const router = express.Router();
 const authRoute = require("../routes/auth.routes");
 router.use("/auth", authRoute);
 
+// LIBRARY ROUTE
+const libraryRoute = require("./library.routes");
+router.use("/library", libraryRoute);
+
 module.exports = router;

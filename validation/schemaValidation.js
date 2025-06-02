@@ -98,6 +98,9 @@ const userSchema = Joi.object({
         "Telefon raqami quydagi shaklda bo'lishi kerak: +998941234567",
       "any.required": "Telefon raqami talab qilinadi.",
     }),
+  role_id: Joi.number().required(),
+  avatar: Joi.string(),
+  telegram_chat_id: Joi.number(),
 });
 // bookSchema validator
 

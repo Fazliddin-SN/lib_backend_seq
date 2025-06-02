@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("Books", {
-      book_id: {
+      id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
@@ -27,7 +27,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: "Categories",
-          key: "category_id",
+          key: "id",
         },
       },
       publication_date: {
@@ -42,7 +42,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: "BookStatuses",
-          key: "book_status_id",
+          key: "id",
         },
         onDelete: "SET NULL",
       },
@@ -50,7 +50,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: {
           model: "Libraries",
-          key: "library_id",
+          key: "id",
         },
         onDelete: "CASCADE",
       },

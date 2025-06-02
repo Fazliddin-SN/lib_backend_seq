@@ -27,7 +27,7 @@ exports.authController = {
       //HASH THE PASSWORD
       const hashedPassword = await bcrypt.hash(body.password, 10);
       // CREATE NEW USER AND SIGN NEW JWT TOKEN
-      const newUser = await User.create(body);
+      const newUser = await User.create({ ...body, password: hashedPassword });
       //GENERATE TOKEN
       const token = jwt.sign(
         {
@@ -54,10 +54,14 @@ exports.authController = {
     try {
       const { username, password } = req.body;
       // CHECK IF USER EXISTS
+      console.log("username ", password, username);
+
       const user = await User.findOne({ where: { username } });
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+      console.log("user password ", user.password);
+
       // Check password
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
@@ -67,9 +71,9 @@ exports.authController = {
       //GENERATE TOKEN
       const token = jwt.sign(
         {
-          id: newUser.user_id,
-          role_id: newUser.role_id,
-          fullname: newUser.fullname,
+          id: user.user_id,
+          role_id: user.role_id,
+          fullname: user.fullname,
         },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRATION || "1d" }

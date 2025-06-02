@@ -13,8 +13,8 @@ module.exports = (sequelize, DataTypes) => {
   }
   Library.init(
     {
-      name: DataTypes.STRING,
-      owner_id: DataTypes.INTEGER,
+      name: { type: DataTypes.STRING, allowNull: false },
+      owner_id: { type: DataTypes.INTEGER, allowNull: false },
     },
     {
       sequelize,

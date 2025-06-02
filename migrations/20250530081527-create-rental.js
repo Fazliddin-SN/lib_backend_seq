@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("Rentals", {
-      rental_id: {
+      id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: "Users",
-          key: "user_id",
+          key: "id",
         },
       },
       book_id: {
@@ -22,7 +22,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: "Books",
-          key: "book_id",
+          key: "id",
         },
         onDelete: "SET NULL",
       },
@@ -31,7 +31,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: "Users",
-          key: "user_id",
+          key: "id",
         },
       },
       rental_date: {
@@ -51,7 +51,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: "BookStatuses",
-          key: "book_status_id",
+          key: "id",
         },
         onDelete: "SET NULL",
       },
