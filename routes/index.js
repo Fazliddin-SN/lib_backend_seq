@@ -10,4 +10,7 @@ router.use("/auth", authRoute);
 const libraryRoute = require("./library.routes");
 router.use("/library", libraryRoute);
 
+// BOOK ROUTE
+const bookRoute = require("./books.routes");
+router.use("/books", bookRoute);
 module.exports = router;

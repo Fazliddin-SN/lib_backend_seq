@@ -112,7 +112,6 @@ const bookSchema = Joi.object({
     "string.max": "Kitob nomi 150 harfdan oshmasligi kerak",
     "any.required": "Kitob nomi talab qilinadi",
   }),
-  image: Joi.object(),
   author: Joi.string().min(3).max(100).required().messages({
     "string.base": "Muallif ismi string shaklida bo'lish kerak",
     "string.empty": "Muallif ismi bo'sh bo'lmasligi kerak",
@@ -120,22 +119,10 @@ const bookSchema = Joi.object({
     "string.max": "Muallif ismi 150 harfdan oshmaligi kerak",
     "any.required": "Muallif ismi talab qilinadi",
   }),
-  isbn: Joi.string().required().messages({
-    "any.required": "ISBN talab qilinadi.",
-    "alternatives.match": "ISBN ISBN-10 yoki ISBN-13 shaklida bo'lishi kerak",
-  }),
-  category: Joi.string(),
-  status: Joi.string().valid("mavjud", "ijarada").messages({
-    "string.base": "Status string shaklida bo'lishi kerak",
-    "any.only": "Status 'mavjud' yoki 'ijarada' shaklida bo'lishi kerak",
-    "any.required": "Status talab qilinadi.",
-  }),
-  publication_date: Joi.date().iso().required().messages({
-    "date.base": "Nashr sanasi sting shaklida bo'lishi kerak",
-    "date.format":
-      "Nash sanasi quyidagi shaklda bo'lishi kerak: (e.g., 2023-03-19)",
-    "any.required": "Nashr sanasi talab qilinadi",
-  }),
+  isbn: Joi.number().required(),
+  category_id: Joi.number().required(),
+  status_id: Joi.number().required(),
+  publication_date: Joi.string().required(),
 });
 
 // library SChema controller

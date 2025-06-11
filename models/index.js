@@ -48,9 +48,9 @@ Object.keys(db).forEach((modelName) => {
 });
 
 // Set up relationships here
-db.BookStatus.hasMany(db.Book, { foreignKey: "book_status_id", as: "books" });
+db.BookStatus.hasMany(db.Book, { foreignKey: "id", as: "books" });
 db.Book.belongsTo(db.BookStatus, {
-  foreignKey: "book_status_id",
+  foreignKey: "id",
   as: "status",
 });
 
@@ -69,12 +69,12 @@ db.Library.belongsTo(db.User, {
 // One user can have many libraries
 db.User.hasMany(db.Library, {
   foreignKey: "owner_id",
-  as: "libraries",
+  as: "library",
 });
 
 db.LibraryMember.belongsTo(db.User, {
   foreignKey: "user_id",
-  as: "user", // 👈 this is important
+  as: "users", // 👈 this is important
 });
 
 db.User.hasMany(db.LibraryMember, {
@@ -83,18 +83,24 @@ db.User.hasMany(db.LibraryMember, {
 });
 
 db.Book.belongsTo(db.Category, {
-  foreignKey: "category_id",
+  foreignKey: "id",
   as: "category",
 });
-db.Category.hasMany(db.Book, { foreignKey: "category_id", as: "books" });
+db.Category.hasMany(db.Book, { foreignKey: "id", as: "books" });
 
 db.Rental.belongsTo(db.RentalStatus, {
-  foreignKey: "rental_status_id",
+  foreignKey: "id",
   as: "rental_status",
 });
 db.RentalStatus.hasMany(db.Rental, {
-  foreignKey: "rental_status_id",
+  foreignKey: "id",
   as: "rentals",
+});
+
+///
+db.LibraryMember.belongsTo(db.Library, {
+  foreignKey: "library_id",
+  as: "library",
 });
 
 db.sequelize = sequelize;

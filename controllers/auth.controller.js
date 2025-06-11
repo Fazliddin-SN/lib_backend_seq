@@ -1,10 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const path = require("path");
-const { bucketName, storage, deleteFromGCS } = require("../middlewares/gcs.js");
 require("dotenv").config();
 const { CustomError } = require("../utils/customError.js");
-const { User, UserRoles } = require("../models");
+const { User, UserRoles, Library, LibraryMember } = require("../models");
 
 exports.authController = {
   //REGISTER PROCESS
@@ -60,7 +59,6 @@ exports.authController = {
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      console.log("user password ", user.password);
 
       // Check password
       const validPassword = await bcrypt.compare(password, user.password);
@@ -91,14 +89,41 @@ exports.authController = {
 
   // FETCH USERS LIST
   async usersList(req, res, next) {
+    const page = req.query.page || 0;
+    const size = req.query.size || 50;
     try {
-      const users = await User.findAll();
-      res.status(200).json(users);
-    } catch (error) {
-      console.error("Failed to load users ");
-      res.status(400).json({
-        error: error.message,
+      // FETCH ALL USERS
+      const { count, rows } = await User.findAndCountAll({
+        order: [["id", "ASC"]],
+        offset: size * page,
+        limit: size,
+        include: [
+          { model: UserRoles, as: "role" }, // Role info
+          { model: Library, as: "library" }, // for owners
+          {
+            model: LibraryMember,
+            as: "members",
+            include: [
+              {
+                model: Library,
+                as: "library",
+                attributes: ["name"],
+              },
+            ],
+          }, // for regular users
+        ],
       });
+
+      res.status(200).json({
+        users: rows,
+        totalItems: count,
+        totalPages: Math.ceil(count / size),
+        currentPage: page,
+        status: "ok",
+      });
+    } catch (error) {
+      console.error("Failed to load users ", error);
+      next(error);
     }
   },
 
@@ -117,6 +142,39 @@ exports.authController = {
       res.status(400).json({
         error: error.message,
       });
+    }
+  },
+
+  //UPDATE USER DATA
+  async updateUser(req, res, next) {
+    const { id } = req.params;
+    const body = req.body;
+    try {
+      // CHECK USER EXISTENCE
+      const user = await User.findOne({ where: { id } });
+      if (!user) {
+        throw new CustomError("Bu id bilan foydalanuvchi topilmadi. ", 404);
+      }
+      //HASH THE PASSWORD AND UPDATE DATE
+      const hashedPassword = await bcrypt.hash(body.password, 10);
+      const [updatedCount, [updatedUser]] = await User.update(
+        {
+          ...body,
+          password: hashedPassword,
+        },
+        { where: { id }, returning: true }
+      );
+      if (updatedCount === 0) {
+        throw new CustomError("Foydalanuvchi malumotlari tahrirlanmadi.", 400);
+      }
+
+      res.status(200).json({
+        message: `Azo malumotlari tahrirlandi. `,
+        updatedUser,
+      });
+    } catch (error) {
+      console.error("Failed to update user data ", error);
+      next(error);
     }
   },
 
