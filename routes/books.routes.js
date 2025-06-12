@@ -7,6 +7,7 @@ const { bookController } = require("../controllers/book.controller");
 const { upload } = require("../middlewares/uplaod");
 const { verifyToken, roleGuard } = require("../middlewares/authMiddleware");
 
+//add
 router.post(
   "/",
   upload.single("image"),
@@ -15,6 +16,8 @@ router.post(
   roleGuard(2),
   bookController.addBook
 );
+
+//update
 router.put(
   "/:id",
   upload.single("image"),
@@ -24,6 +27,10 @@ router.put(
   bookController.updateBook
 );
 
+// delete
+router.delete("/:id", verifyToken, roleGuard(2), bookController.deleteBook);
+
+//fetch all books
 router.get("/", verifyToken, roleGuard(2), bookController.getBooksByLib);
 
 module.exports = router;

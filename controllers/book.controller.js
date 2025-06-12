@@ -180,4 +180,42 @@ exports.bookController = {
       next(error);
     }
   },
+
+  // DELETING THE BOOK
+  async deleteBook(req, res, next) {
+    const owner_id = req.user.id;
+    const { id } = req.params;
+
+    try {
+      //existing book
+      const book = await Book.findOne({
+        where: { id },
+      });
+      if (!book) {
+        throw new CustomError("Kitob topilmadi!", 404);
+      }
+
+      const library = await Library.findOne({ where: { owner_id } });
+      if (!library) {
+        throw new CustomError(
+          "Hech qanday kutubxona topilmadi bu user uchun",
+          404
+        );
+      }
+
+      const oldImage = book.image_path || null;
+      if (oldImage) {
+        await fs.remove(oldImage);
+      }
+
+      await Book.destroy({ where: { id } });
+
+      res.status(200).json({
+        message: "Kitob o'chirildi",
+      });
+    } catch (error) {
+      console.error("Failed to delete book ", error);
+      next(error);
+    }
+  },
 };
