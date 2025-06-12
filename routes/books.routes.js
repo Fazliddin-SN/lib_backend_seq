@@ -15,6 +15,14 @@ router.post(
   roleGuard(2),
   bookController.addBook
 );
+router.put(
+  "/:id",
+  upload.single("image"),
+  validateBookSchema,
+  verifyToken,
+  roleGuard(2),
+  bookController.updateBook
+);
 
 router.get("/", verifyToken, roleGuard(2), bookController.getBooksByLib);
 

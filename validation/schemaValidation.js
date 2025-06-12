@@ -119,7 +119,9 @@ const bookSchema = Joi.object({
     "string.max": "Muallif ismi 150 harfdan oshmaligi kerak",
     "any.required": "Muallif ismi talab qilinadi",
   }),
-  isbn: Joi.number().required(),
+  isbn: Joi.number()
+    .required()
+    .messages({ "any.required": "categriya IDsi ismi talab qilinadi" }),
   category_id: Joi.number().required(),
   status_id: Joi.number().required(),
   publication_date: Joi.string().required(),
