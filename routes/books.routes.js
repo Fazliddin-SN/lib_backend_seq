@@ -30,6 +30,9 @@ router.put(
 // delete
 router.delete("/:id", verifyToken, roleGuard(2), bookController.deleteBook);
 
+// get book by its id
+router.get("/:id", verifyToken, roleGuard(2), bookController.getBookById);
+
 //fetch all books
 router.get("/", verifyToken, roleGuard(2), bookController.getBooksByLib);
 

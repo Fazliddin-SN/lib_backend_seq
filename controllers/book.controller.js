@@ -5,6 +5,7 @@ const path = require("path");
 
 const { Book, BookStatus, Category, Library } = require("../models");
 const { Op } = require("sequelize");
+
 exports.bookController = {
   // GET BOOKS FOR LIBRARY
   async getBooksByLib(req, res, next) {
@@ -215,6 +216,38 @@ exports.bookController = {
       });
     } catch (error) {
       console.error("Failed to delete book ", error);
+      next(error);
+    }
+  },
+
+  //GET BOOK BY ID
+  async getBookById(req, res, next) {
+    const owner_id = req.user.id;
+    const { id } = req.params;
+
+    try {
+      const library = await Library.findOne({ where: { owner_id } });
+      if (!library) {
+        throw new CustomError(
+          "Hech qanday kutubxona topilmadi bu user uchun",
+          404
+        );
+      }
+
+      //existing book
+      const book = await Book.findOne({
+        where: { id, library_id: library.id },
+      });
+      if (!book) {
+        throw new CustomError("Kitob topilmadi!", 404);
+      }
+
+      res.status(200).json({
+        book,
+        status: "ok",
+      });
+    } catch (error) {
+      console.error("Failed to fetch book by its id", error);
       next(error);
     }
   },

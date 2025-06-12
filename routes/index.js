@@ -13,4 +13,9 @@ router.use("/library", libraryRoute);
 // BOOK ROUTE
 const bookRoute = require("./books.routes");
 router.use("/books", bookRoute);
+
+//CATEGORIES ROUTE
+const categoriesRoute = require("./categories.route");
+router.use("/categories", categoriesRoute);
+
 module.exports = router;
