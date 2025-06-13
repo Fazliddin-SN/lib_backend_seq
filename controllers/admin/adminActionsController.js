@@ -49,3 +49,43 @@ exports.fetchLibs = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.updateLib = async (req, res, next) => {
+  const { libId } = req.params;
+  const { lib_name } = req.query;
+
+  try {
+    const library = await Library.findOne({ where: { id: libId } });
+    if (!library) {
+      throw new CustomError("Library not found", 404);
+    }
+
+    const updated = await Library.update(
+      {
+        name: lib_name,
+      },
+      { where: { id: libId } }
+    );
+
+    if (!updated[0] === 0) {
+      throw new CustomError("Kutubxona tahrirlanmadi", 400);
+    }
+
+    // Fetch updated library with owner info
+    const updatedLibrary = await Library.findByPk(libId, {
+      include: {
+        model: User,
+        as: "owner",
+        attributes: ["fullname", "username", "address", "phonenumber"],
+      },
+    });
+
+    res.status(200).json({
+      message: "Kutubxona tahrirlandi",
+      library: updatedLibrary,
+    });
+  } catch (error) {
+    console.error("Failed to edit library ", error);
+    next(error);
+  }
+};
