@@ -18,4 +18,8 @@ router.use("/books", bookRoute);
 const categoriesRoute = require("./categories.route");
 router.use("/categories", categoriesRoute);
 
+// ADMIN ROUTES
+const adminRoute = require("./admin.routes");
+router.use("/admin", adminRoute);
+
 module.exports = router;
