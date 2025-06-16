@@ -18,37 +18,61 @@ async function notifyMember(
   rentalDate,
   dueDate,
   expectedReturnDate,
-  actual_return_date
+  actual_return_date,
+  actionName
 ) {
+  console.log("chat id ", chatId, bookName, libraryName);
+
   if (chatId) {
-    if (actual_return_date !== null && actual_return_date) {
+    if (
+      actual_return_date !== null &&
+      actual_return_date &&
+      actionName === "cancel"
+    ) {
       const text = `
-🎉 <b>Siz ijara olgan kitobni qaytarib berdingiz!!!</b>
+                    🎉 <b>Siz ijara olgan kitobni qaytarib berdingiz!!!</b>
 
-📖 <b>Kitob nomi:</b> «${bookName}»  
-🏛️ <b>Kutubxona:</b> «${libraryName}»  
-🗓️ <b>Ijara sanasi:</b> ${rentalDate}  
-🔔 <b>Ogohlantirish sanasi:</b> ${dueDate}  
-⏳ <b>Qaytarilish sanasi:</b> ${actual_return_date}
+                    📖 <b>Kitob nomi:</b> «${bookName}»  
+                    🏛️ <b>Kutubxona:</b> «${libraryName}»  
+                    🗓️ <b>Ijara sanasi:</b> ${rentalDate}  
+                    🔔 <b>Ogohlantirish sanasi:</b> ${dueDate}  
+                    ⏳ <b>Qaytarilish sanasi:</b> ${actual_return_date}
 
+                    <i>Muvaffaqiyatli o‘qish tilaymiz!</i>
+                    `;
+      return await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
+    } else if (actionName === "update") {
+      const textUpdate = `
+         🎉 <b>${bookName} nomli kitob uchun ijara malumotlari tahrirlandi!</b>
 
-<i>Muvaffaqiyatli o‘qish tilaymiz!</i>
-`;
+         📖 <b>Kitob nomi:</b> «${bookName}»  
+         🏛️ <b>Kutubxona:</b> «${libraryName}»  
+         🗓️ <b>Ijara sanasi:</b> ${rentalDate}  
+         🔔 <b>Ogohlantirish sanasi:</b> ${dueDate}  
+         ⏳ <b>Qaytarilish sanasi:</b> ${expectedReturnDate}
+
+            <i>Muvaffaqiyatli o‘qish tilaymiz!</i>
+            `;
+      return await bot.api.sendMessage(chatId, textUpdate, {
+        parse_mode: "HTML",
+      });
+    } else if (actionName === "create") {
+      const text = `
+                🎉 <b>Siz kitob ijaraga oldingiz!</b>
+
+                📖 <b>Kitob nomi:</b> «${bookName}»  
+                🏛️ <b>Kutubxona:</b> «${libraryName}»  
+                🗓️ <b>Ijara sanasi:</b> ${rentalDate}  
+                🔔 <b>Ogohlantirish sanasi:</b> ${dueDate}  
+                ⏳ <b>Qaytarilish sanasi:</b> ${expectedReturnDate}
+
+                <i>Muvaffaqiyatli o‘qish tilaymiz!</i>
+                `;
+
       return await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
     }
-    const text = `
-🎉 <b>Siz kitob ijaraga oldingiz!</b>
-
-📖 <b>Kitob nomi:</b> «${bookName}»  
-🏛️ <b>Kutubxona:</b> «${libraryName}»  
-🗓️ <b>Ijara sanasi:</b> ${rentalDate}  
-🔔 <b>Ogohlantirish sanasi:</b> ${dueDate}  
-⏳ <b>Qaytarilish sanasi:</b> ${expectedReturnDate}
-
-<i>Muvaffaqiyatli o‘qish tilaymiz!</i>
-`;
-    await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
   }
+
   return;
 }
 
@@ -60,42 +84,62 @@ async function notifyOwner(
   rentalDate,
   dueDate,
   expectedReturnDate,
-  actual_return_date
+  actual_return_date,
+  actionName
 ) {
   if (chatId) {
     /////
-    if (actual_return_date !== null && actual_return_date) {
+    if (
+      actual_return_date !== null &&
+      actual_return_date &&
+      actionName === "cancel"
+    ) {
+      const textCancel = `
+       
+         📚 * ijara olingan kitob qaytarib berildi!*
+       
+         👤 *Foydalanuvchi:* _${userName}_
+         📖 *Kitob:*        _${bookName}_
+         📅 *Ijara Sanasi*:        _${rentalDate}_
+         🔔 *Eslatma Sanasi:*      _${dueDate}_
+         ⏳ *Qaytarilish Sanasi:*    _${actual_return_date}_
+            `;
+
+      return await bot.api.sendMessage(chatId, textCancel, {
+        parse_mode: "HTML",
+      });
+    } else if (actionName === "update") {
+      const textUpdate = `
+      
+        📚 *${userName} nomli foydalanuvchining ijara malumotlari tahrirlandi! *
+     
+        👤 *Foydalanuvchi:* _${userName}_
+        📖 *Kitob:*        _${bookName}_
+        📅 *Ijara*:        _${rentalDate}_
+        🔔 *Eslatma:*      _${dueDate}_
+        ⏳ *Qaytarish:*    _${expectedReturnDate}_
+        `;
+
+      return await bot.api.sendMessage(chatId, textUpdate, {
+        parse_mode: "Markdown",
+      });
+    } else if (actionName === "create") {
       const text = `
-━━━━━━━━━━━━━━━
-📚 * ijara olingan kitob qaytarib berildi!*
-━━━━━━━━━━━━━━━
+                    
+                 📚 *Yangi ijara*
+                   
+                 👤 *Foydalanuvchi:* _${userName}_
+                 📖 *Kitob:*        _${bookName}_
+                 📅 *Ijara*:        _${rentalDate}_
+                 🔔 *Eslatma:*      _${dueDate}_
+                 ⏳ *Qaytarish:*    _${expectedReturnDate}_
+                    `;
 
-👤 *Foydalanuvchi:* _${userName}_
-📖 *Kitob:*        _${bookName}_
-📅 *Ijara Sanasi*:        _${rentalDate}_
-🔔 *Eslatma Sanasi:*      _${dueDate}_
-⏳ *Qaytarilish Sanasi:*    _${actual_return_date}_
-`;
-
-      return await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
+      return await bot.api.sendMessage(chatId, text, {
+        parse_mode: "Markdown",
+      });
     }
-
-    const text = `
-━━━━━━━━━━━━━━━
-📚 *Yangi ijara*
-━━━━━━━━━━━━━━━
-
-👤 *Foydalanuvchi:* _${userName}_
-📖 *Kitob:*        _${bookName}_
-📅 *Ijara*:        _${rentalDate}_
-🔔 *Eslatma:*      _${dueDate}_
-⏳ *Qaytarish:*    _${expectedReturnDate}_
-`;
-
-    return await bot.api.sendMessage(chatId, text, { parse_mode: "Markdown" });
   }
-  console.log("dadada");
-
   return;
 }
 
