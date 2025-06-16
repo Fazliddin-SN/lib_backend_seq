@@ -22,7 +22,12 @@ router.use("/categories", categoriesRoute);
 const adminRoute = require("./admin.routes");
 router.use("/admin", adminRoute);
 
+//LIBRARY MEMBER ROUTE
 const membersRoute = require("./members.route");
 router.use("/members", membersRoute);
+
+// RENTALS ROUTE
+const rentalRoute = require("./rentals.route");
+router.use("/rentals", rentalRoute);
 
 module.exports = router;

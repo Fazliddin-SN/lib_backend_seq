@@ -44,6 +44,7 @@ module.exports = (sequelize, DataTypes) => {
           model: "RentalStatuses",
           key: "rental_status_id",
         },
+        defaultValue: 1,
       },
     },
     {

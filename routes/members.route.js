@@ -5,7 +5,7 @@ const {
   getLibsDetailsForMembers,
   getAllAvailableBooksForMem,
   getBorrowedBooks,
-} = require("../controllers/members.controllers");
+} = require("../controllers/members.controller");
 
 const router = express.Router();
 
