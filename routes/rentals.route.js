@@ -6,6 +6,7 @@ const {
   fetchRentals,
   updateRental,
   updateRentalReturn,
+  fetchOverDueRentals,
 } = require("../controllers/rentals.controller");
 
 const router = express.Router();
@@ -21,5 +22,8 @@ router.put("/:rentalId", verifyToken, roleGuard(2), updateRental);
 
 //update actual return date
 router.post("/delete", verifyToken, roleGuard(2), updateRentalReturn);
+
+//fetching overdueRentals
+router.get("/overdue", verifyToken, roleGuard(2), fetchOverDueRentals);
 
 module.exports = router;

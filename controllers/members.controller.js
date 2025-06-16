@@ -151,6 +151,7 @@ exports.getBorrowedBooks = async (req, res, next) => {
   try {
     const { count, rows } = await Rental.findAndCountAll({
       where: { user_id: userId },
+      order: [["id", "ASC"]],
       include: [
         {
           model: Book,

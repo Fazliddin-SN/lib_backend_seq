@@ -455,3 +455,46 @@ exports.updateRentalReturn = async (req, res, next) => {
     next(error);
   }
 };
+
+// FETCHING OVER DUE RENTALS
+exports.fetchOverDueRentals = async (req, res, next) => {
+  const owner_id = req.user.id;
+  try {
+    const library = await Library.findOne({ where: { owner_id } });
+    if (!library) {
+      throw new CustomError(
+        "Hech qanday kutubxona topilmadi bu user uchun",
+        404
+      );
+    }
+
+    const overDueRentals = await Rental.findAll({
+      where: {
+        owner_id,
+        actual_return_date: null,
+        return_date: { [Op.lt]: fn("NOW") },
+      },
+      include: [
+        { model: Book, as: "book" },
+        {
+          model: User,
+          as: "member",
+          attributes: ["username", "fullname", "phonenumber"],
+        },
+      ],
+      order: [["return_date", "ASC"]],
+    });
+
+    if (!overDueRentals || overDueRentals.length === 0) {
+      throw new CustomError("Sizda kechikkan ijaralar mavjud emas.", 404);
+    }
+
+    res.status(200).json({
+      overDueRentals,
+      status: "ok",
+    });
+  } catch (error) {
+    console.error("Failed to fetch overdue rentals ", error);
+    next(error);
+  }
+};
