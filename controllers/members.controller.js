@@ -1,5 +1,12 @@
 const { CustomError } = require("../utils/customError");
-const { Library, User, Book, LibraryMember, Category } = require("../models");
+const {
+  Library,
+  User,
+  Book,
+  LibraryMember,
+  Category,
+  Rental,
+} = require("../models");
 const { Op } = require("sequelize");
 
 // GET LIBRARY DETAILS FOR THEIR MEMBERS
@@ -136,4 +143,9 @@ exports.getAllAvailableBooksForMem = async (req, res, next) => {
 };
 
 // SHOW THE BOOKS THAT THE MEMBER HAS BORROWED AND CURRENTLY HAS.
-exports.getBorrowedBooks = (req, res, next) => {};
+exports.getBorrowedBooks = async (req, res, next) => {
+  const userId = req.user.id;
+  try {
+    const { count, rows } = await Rental.findAndCountAll({});
+  } catch (error) {}
+};

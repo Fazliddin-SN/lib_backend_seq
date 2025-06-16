@@ -5,6 +5,7 @@ const {
   createRental,
   fetchRentals,
   updateRental,
+  updateRentalReturn,
 } = require("../controllers/rentals.controller");
 
 const router = express.Router();
@@ -17,5 +18,8 @@ router.get("/", verifyToken, roleGuard(2), fetchRentals);
 
 // update rental by id
 router.put("/:rentalId", verifyToken, roleGuard(2), updateRental);
+
+//update actual return date
+router.post("/delete", verifyToken, roleGuard(2), updateRentalReturn);
 
 module.exports = router;

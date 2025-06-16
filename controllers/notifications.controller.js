@@ -21,8 +21,6 @@ async function notifyMember(
   actual_return_date,
   actionName
 ) {
-  console.log("chat id ", chatId, bookName, libraryName);
-
   if (chatId) {
     if (
       actual_return_date !== null &&
@@ -30,15 +28,15 @@ async function notifyMember(
       actionName === "cancel"
     ) {
       const text = `
-                    🎉 <b>Siz ijara olgan kitobni qaytarib berdingiz!!!</b>
+            🎉 <b>Siz ijara olgan kitobni qaytarib berdingiz!!!</b>
 
-                    📖 <b>Kitob nomi:</b> «${bookName}»  
-                    🏛️ <b>Kutubxona:</b> «${libraryName}»  
-                    🗓️ <b>Ijara sanasi:</b> ${rentalDate}  
-                    🔔 <b>Ogohlantirish sanasi:</b> ${dueDate}  
-                    ⏳ <b>Qaytarilish sanasi:</b> ${actual_return_date}
+            📖 <b>Kitob nomi:</b> «${bookName}»  
+            🏛️ <b>Kutubxona:</b> «${libraryName}»  
+            🗓️ <b>Ijara sanasi:</b> ${rentalDate}  
+            🔔 <b>Ogohlantirish sanasi:</b> ${dueDate}  
+            ⏳ <b>Qaytarilish sanasi:</b> ${actual_return_date}
 
-                    <i>Muvaffaqiyatli o‘qish tilaymiz!</i>
+            <i>Muvaffaqiyatli o‘qish tilaymiz!</i>
                     `;
       return await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
     } else if (actionName === "update") {
@@ -96,13 +94,13 @@ async function notifyOwner(
     ) {
       const textCancel = `
        
-         📚 * ijara olingan kitob qaytarib berildi!*
+    📚 * ijara olingan kitob qaytarib berildi!*
        
-         👤 *Foydalanuvchi:* _${userName}_
-         📖 *Kitob:*        _${bookName}_
-         📅 *Ijara Sanasi*:        _${rentalDate}_
-         🔔 *Eslatma Sanasi:*      _${dueDate}_
-         ⏳ *Qaytarilish Sanasi:*    _${actual_return_date}_
+    👤 *Foydalanuvchi:* ${userName}
+    📖 *Kitob:*        ${bookName}
+    📅 *Ijara Sanasi*:        ${rentalDate}
+    🔔 *Eslatma Sanasi:*      ${dueDate}
+    ⏳ *Qaytarilish Sanasi:*    ${actual_return_date}
             `;
 
       return await bot.api.sendMessage(chatId, textCancel, {

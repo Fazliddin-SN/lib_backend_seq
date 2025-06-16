@@ -7,7 +7,7 @@ const {
   Category,
   Rental,
 } = require("../models");
-const { Op } = require("sequelize");
+const { Op, fn, literal } = require("sequelize");
 const { notifyMember, notifyOwner } = require("./notifications.controller");
 
 // Format dates as YYYY-MM_DD
@@ -350,8 +350,108 @@ exports.updateRental = async (req, res, next) => {
       rental: updated,
     });
   } catch (error) {
-    console.error("Failed to update rental", 400);
+    console.error("Failed to update rental", error);
     next(error);
   }
 };
 //CANCEL THE RENTAL.
+
+exports.updateRentalReturn = async (req, res, next) => {
+  const owner_id = req.user.id;
+  const { rental_id, book_id } = req.query;
+  console.log("rental data ", rental_id, book_id);
+
+  try {
+    const rentalData = await Rental.findOne({
+      where: { id: rental_id },
+    });
+    if (!rentalData || rentalData.length === 0) {
+      throw new CustomError("Bu id bilan ijara topilmadi", 404);
+    }
+
+    const library = await Library.findOne({ where: { owner_id } });
+    if (!library) {
+      throw new CustomError(
+        "Hech qanday kutubxona topilmadi bu user uchun",
+        404
+      );
+    }
+
+    const book = await Book.findOne({
+      where: { id: book_id },
+    });
+    if (!book || book.length === 0) {
+      throw new CustomError("Bu id bilan kitob topilmadi!", 404);
+    }
+
+    const member = await User.findOne({
+      where: { id: rentalData.user_id },
+    });
+    if (!member || member.length === 0) {
+      throw new CustomError("foydalanuvchi topilmadi bu id bilan!");
+    }
+
+    const [affectedCount, updatedRows] = await Rental.update(
+      {
+        actual_return_date: literal("CURRENT_DATE"),
+        // or: literal("CURRENT_DATE")
+        status_id: 2,
+      },
+      {
+        where: {
+          id: rental_id,
+          owner_id,
+        },
+        returning: true, // <-- tells Postgres to RETURN the updated rows
+        plain: false,
+      }
+    );
+    if (affectedCount === 0) {
+      throw new CustomError("Ijara qaytarib berilishi tugallanmadi. ", 400);
+    }
+
+    //NOTIFICATIONS HERE
+    const ownerTgData = await User.findOne({
+      where: { id: owner_id },
+      attributes: ["id", "fullname", "telegram_chat_id"],
+    });
+
+    const updatedRental = updatedRows[0];
+
+    // notify member
+    if (member.telegram_chat_id) {
+      await notifyMember(
+        member.telegram_chat_id,
+        book.title,
+        library.name,
+        fmt(updatedRental.rental_date),
+        fmt(updatedRental.due_date),
+        fmt(updatedRental.return_date),
+        fmt(updatedRental.actual_return_date),
+        "cancel"
+      );
+    }
+
+    // notify the owner
+    if (ownerTgData.telegram_chat_id) {
+      await notifyOwner(
+        ownerTgData.telegram_chat_id,
+        member.fullname,
+        book.title,
+        fmt(updatedRental.rental_date),
+        fmt(updatedRental.due_date),
+        fmt(updatedRental.return_date),
+        fmt(updatedRental.actual_return_date),
+        "cancel"
+      );
+    }
+
+    res.status(200).json({
+      message: "Rental marked returned",
+      rental: updatedRental,
+    });
+  } catch (error) {
+    console.error("Failed to update rentals actual return date.", error);
+    next(error);
+  }
+};
