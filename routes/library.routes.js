@@ -32,6 +32,13 @@ router.post(
   libraryMemberController.addMember
 );
 
+router.post(
+  "/member",
+  verifyToken,
+  roleGuard(2),
+  libraryMemberController.addMemberWithUsername
+);
+
 // GET ALL MEMBERS
 router.get(
   "/members/info",

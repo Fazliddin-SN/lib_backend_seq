@@ -237,6 +237,57 @@ exports.libraryMemberController = {
       next(error);
     }
   },
+  // register memner with username
+  async addMemberWithUsername(req, res, next) {
+    const owner_id = req.user.id;
+    const { username } = req.query;
+
+    try {
+      const member = await User.findOne({
+        where: { username },
+      });
+      if (!member) {
+        throw new CustomError(
+          "Bu username bilan foydalanuvchi topilmadi. ",
+          404
+        );
+      }
+
+      // CHECK LIBARY EXISTS WITH THIS OWNER ID
+      const library = await Library.findOne({ where: { owner_id } });
+      if (!library) {
+        throw new CustomError("Bu owner_id bilan kutubxona topilmadi. ", 404);
+      }
+
+      // check if this user has not been join this library before
+      const libMember = await LibraryMember.findOne({
+        where: { user_id: member.id, library_id: library.id },
+      });
+      if (libMember) {
+        throw new CustomError(
+          "Bu Foydalanuvchi allaqachon sizning kutubxonangiz azosi!",
+          400
+        );
+      }
+
+      //CREATE NEW LIBRARY MEMBER
+      const newMember = await LibraryMember.create({
+        user_id: member.id,
+        library_id: library.id,
+      });
+      if (!newMember) {
+        throw new CustomError("Yangi kutubxona azo qo'shilmadi. ", 400);
+      }
+
+      res.status(201).json({
+        message: "Yangi foydalanuvchi qo'shildi. ISM:" + member.fullname,
+        newMember,
+      });
+    } catch (error) {
+      console.error("Failed to add new memeber with username", error);
+      next(error);
+    }
+  },
 
   // UPDATE THE LIBRARY MEMBER
   async updateLibMember(req, res, next) {

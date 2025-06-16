@@ -22,4 +22,7 @@ router.use("/categories", categoriesRoute);
 const adminRoute = require("./admin.routes");
 router.use("/admin", adminRoute);
 
+const membersRoute = require("./members.route");
+router.use("/members", membersRoute);
+
 module.exports = router;
