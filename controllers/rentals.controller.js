@@ -131,3 +131,105 @@ exports.createRental = async (req, res, next) => {
     next(error);
   }
 };
+
+//FETCH ALL RENTALS THAT BELONG TO A SPECIFIC OWNER
+exports.fetchRentals = async (req, res, next) => {
+  const owner_id = req.user.id;
+  const page = req.query.page || 0;
+  const size = req.query.size || 50;
+
+  try {
+    //initializing where clause
+    const whereClause = {};
+    whereClause.owner_id = owner_id;
+
+    const library = await Library.findOne({ where: { owner_id } });
+    if (!library) {
+      throw new CustomError(
+        "Hech qanday kutubxona topilmadi bu user uchun",
+        404
+      );
+    }
+
+    const { count, rows } = await Rental.findAndCountAll({
+      where: {
+        owner_id,
+      },
+      order: [["id", "ASC"]],
+      offset: page * size,
+      limit: size,
+      include: [
+        {
+          model: User,
+          as: "member",
+          attributes: { exclude: ["password"] },
+        },
+        {
+          model: Book,
+          include: [
+            {
+              model: Library,
+              as: "library",
+              include: [
+                {
+                  model: User,
+                  as: "owner",
+                  attributes: { exclude: ["password"] },
+                },
+              ],
+            },
+            {
+              model: Category,
+              as: "category",
+            },
+          ],
+        },
+      ],
+    });
+
+    const rentsss = await Rental.findAndCountAll({
+      where: {
+        owner_id,
+      },
+      order: [["id", "ASC"]],
+      offset: page * size,
+      limit: size,
+      include: [
+        {
+          model: User,
+          as: "member",
+          attributes: { exclude: ["password"] },
+        },
+        {
+          model: Book,
+          include: [
+            {
+              model: Library,
+              as: "library",
+              include: [{ model: User, as: "owner" }],
+            },
+            {
+              model: Category,
+              as: "category",
+            },
+          ],
+        },
+      ],
+    });
+    console.log("rentals ", rentsss);
+
+    if (!rows || rows.length === 0) {
+      throw new CustomError("Ijaralar topilmadi. ", 404);
+    }
+
+    res.status(200).json({
+      rentals: rows,
+      totalItems: count,
+      totalPages: Math.ceil(count / size),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error("Failed to fetch rentals ", error);
+    next(error);
+  }
+};
