@@ -1,5 +1,6 @@
 const { CustomError } = require("../utils/customError.js");
 const { bot } = require("../utils/bot.js");
+const { fetchDueToday } = require("../services/rental.service.js");
 
 // Format dates as YYYY-MM_DD
 const fmt = (d) =>
@@ -41,7 +42,7 @@ async function notifyMember(
       return await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
     } else if (actionName === "update") {
       const textUpdate = `
-         🎉 <b>${bookName} nomli kitob uchun ijara malumotlari tahrirlandi!</b>
+         🎉 <b>"${bookName}" nomli kitob uchun ijara malumotlari tahrirlandi!</b>
 
          📖 <b>Kitob nomi:</b> «${bookName}»  
          🏛️ <b>Kutubxona:</b> «${libraryName}»  
@@ -106,10 +107,12 @@ async function notifyOwner(
       return await bot.api.sendMessage(chatId, textCancel, {
         parse_mode: "HTML",
       });
-    } else if (actionName === "update") {
+    }
+
+    if (actionName === "update") {
       const textUpdate = `
       
-        📚 *${userName} nomli foydalanuvchining ijara malumotlari tahrirlandi! *
+        📚 *"${userName}" nomli foydalanuvchining ijara malumotlari tahrirlandi! *
      
         👤 *Foydalanuvchi:* _${userName}_
         📖 *Kitob:*        _${bookName}_
@@ -121,17 +124,19 @@ async function notifyOwner(
       return await bot.api.sendMessage(chatId, textUpdate, {
         parse_mode: "Markdown",
       });
-    } else if (actionName === "create") {
+    }
+
+    if (actionName === "create") {
       const text = `
                     
-                 📚 *Yangi ijara*
+            📚 *Yangi ijara*
                    
-                 👤 *Foydalanuvchi:* _${userName}_
-                 📖 *Kitob:*        _${bookName}_
-                 📅 *Ijara*:        _${rentalDate}_
-                 🔔 *Eslatma:*      _${dueDate}_
-                 ⏳ *Qaytarish:*    _${expectedReturnDate}_
-                    `;
+            👤 *Foydalanuvchi:* _${userName}_
+            📖 *Kitob:*        _${bookName}_
+            📅 *Ijara*:        _${rentalDate}_
+            🔔 *Eslatma:*      _${dueDate}_
+            ⏳ *Qaytarish:*    _${expectedReturnDate}_
+               `;
 
       return await bot.api.sendMessage(chatId, text, {
         parse_mode: "Markdown",
@@ -141,97 +146,52 @@ async function notifyOwner(
   return;
 }
 
-// this notifies the members about how many days left to return a book
-async function notifyMemForBookReturn(
-  chatId,
-  bookName,
-  rentalDate,
-  libname,
-  daysleft,
-  rentalDate
-) {
-  if (chatId) {
-    // console.log("chat ids book name ", chatId, bookName, daysleft);
-
-    const text = `
-⏰ <b>Eslatma!</b>
-
-📚 <b>Kitob nomi:</b> «${bookName}»  
-📅 <b>Ijara boshlangan sana:</b> ${fmt(rentalDate)}  
-⏳ <b>Qaytarishga qolgan muddat:</b> ${daysleft} kun  
-🏛️ <b>Kutubxona:</b> «${libname}»
-
-<i>Iltimos, kitobni belgilangan muddatda qaytarishni unutmang!</i>
-`;
-
-    if (daysleft === 0) {
-      const rentedOn = rentalDate.toISOString().split("T")[0];
+async function notifyDueToday() {
+  const rentals = await fetchDueToday();
+  for (let r of rentals) {
+    // send message for member
+    // Member reminder
+    if (r.member.telegram_chat_id) {
       const borrowerMsg = `
 🚨 <b>Eslatma!</b>
 
-📚 <b>Kitob:</b> «${bookName}»  
-🏛️ <b>Kutubxona:</b> «${libname}»
-
-⏰ <b>Bugun qaytarish muddati tugadi!</b>  
-🗓️ <b>Ijara boshlangan sana:</b> ${fmt(rentedOn)}
+📚 <b>Kitob:</b> «${r.book.title}»
+🏛️ <b>Kutubxona:</b> «${r.book.library.name}»
+⏰ <b>Bugun qaytarish muddati tugadi!</b>
+🗓️ <b>Ijara sanasi:</b> ${fmt(r.rental_date)}
 
 🙏 <i>Iltimos, kitobni kechiktirmasdan qaytarib bering.</i>
-`;
+  `;
 
-      return await bot.api.sendMessage(chatId, borrowerMsg, {
+      await bot.api.sendMessage(r.member.telegram_chat_id, borrowerMsg, {
         parse_mode: "HTML",
       });
     }
-    return await bot.api.sendMessage(chatId, text, { parse_mode: "HTML" });
-  }
-  return;
-}
 
-/// notify owner about book return actions
-async function notifyOwnerForBookReturn(
-  chatId,
-  bookName,
-  user_name,
-  daysLeft,
-  rentalDate
-) {
-  if (chatId) {
-    if (daysLeft === 0) {
-      const rentedOn = rentalDate.toISOString().split("T")[0];
+    // Owner reminder
+    if (r.book.library.owner.telegram_chat_id) {
       const ownerMsg = `
 📣 <b>Eslatma!</b>
 
-👤 <b>Foydalanuvchi:</b> ${row.username}  
-📖 <b>Kitob:</b> «${row.title}»  
-⏰ <b>Bugun qaytarish vaqti!</b>  
-🗓️ <b>Ijara sanasi:</b> ${fmt(rentedOn)}
+👤 <b>Foydalanuvchi:</b> ${r.member.fullname}
+📖 <b>Kitob:</b> «${r.book.title}»
+⏰ <b>Bugun qaytarish vaqti!</b>
+🗓️ <b>Ijara sanasi:</b> ${fmt(r.rental_date)}
 
-🙏 <i>Iltimos, kitobni qabul qilib olishingizni unutmang.</i>
-`;
+🙏 <i>Kitobni muddatida qabul qilib olishingizni unutmang.</i>
+  `;
 
-      return await bot.api.sendMessage(chatId, ownerMsg, {
-        parse_mode: "HTML",
-      });
+      await bot.api.sendMessage(
+        r.book.library.owner.telegram_chat_id,
+        ownerMsg,
+        { parse_mode: "HTML" }
+      );
     }
-    const ownerMsg = `
-🚨 <b>Eslatma!</b>
-
-👤 <b>Foydalanuvchi:</b> ${user_name}  
-📚 <b>Kitob nomi:</b> «${bookName}»  
-⏳ <b>Qaytarishga qolgan muddat:</b> ${daysLeft} kun  
-
-🙏 <i>Iltimos, muddatni nazorat qilib, kitobni o‘z vaqtida qabul qilishingizni unutmang.</i>
-`;
-    return await bot.api.sendMessage(chatId, ownerMsg, { parse_mode: "HTML" });
   }
-  return;
 }
 
-// notify when any book is marked as returned
-async function notif() {}
 module.exports = {
   notifyMember,
   notifyOwner,
-  notifyMemForBookReturn,
-  notifyOwnerForBookReturn,
+  notifyDueToday,
 };

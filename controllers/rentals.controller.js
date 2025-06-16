@@ -7,7 +7,7 @@ const {
   Category,
   Rental,
 } = require("../models");
-const { Op, fn, literal } = require("sequelize");
+const { Op, fn, literal, where, col } = require("sequelize");
 const { notifyMember, notifyOwner } = require("./notifications.controller");
 
 // Format dates as YYYY-MM_DD

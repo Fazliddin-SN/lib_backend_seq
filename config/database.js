@@ -3,6 +3,8 @@ const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
+  timezone: "+05:00",
+  dialectOptions: { useUTC: false },
   logging: false,
 });
 

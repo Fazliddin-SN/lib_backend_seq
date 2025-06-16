@@ -8,6 +8,7 @@ const errorHandler = require("../utils/errorHandler");
 const indexRouter = require("../routes/index");
 const app = express();
 
+require("../utils/scheduler");
 const PORT = process.env.PORT || 3018;
 
 //MIDDLE FUNCTIONS
