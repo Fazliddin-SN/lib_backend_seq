@@ -21,6 +21,6 @@ router.get(
 );
 
 // get borrowed books
-router.get("/borrowed-books", verifyToken, roleGuard(2), getBorrowedBooks);
+router.get("/borrowed-books", verifyToken, roleGuard(3), getBorrowedBooks);
 
 module.exports = router;

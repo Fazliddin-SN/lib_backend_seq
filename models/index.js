@@ -104,7 +104,7 @@ db.Rental.belongsTo(db.User, {
   foreignKey: "user_id",
   as: "member",
 });
-db.Rental.belongsTo(db.Book, { foreignKey: "book_id" });
+db.Rental.belongsTo(db.Book, { foreignKey: "book_id", as: "book" });
 
 db.RentalStatus.hasMany(db.Rental, {
   foreignKey: "id",

@@ -145,7 +145,46 @@ exports.getAllAvailableBooksForMem = async (req, res, next) => {
 // SHOW THE BOOKS THAT THE MEMBER HAS BORROWED AND CURRENTLY HAS.
 exports.getBorrowedBooks = async (req, res, next) => {
   const userId = req.user.id;
+
+  const page = req.query.page || 0;
+  const size = req.query.size || 50;
   try {
-    const { count, rows } = await Rental.findAndCountAll({});
-  } catch (error) {}
+    const { count, rows } = await Rental.findAndCountAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: Book,
+          as: "book",
+          attributes: ["id", "title", "author"],
+          include: [
+            {
+              model: Library,
+              as: "library",
+              attributes: ["id", "name"],
+              include: [
+                {
+                  model: User,
+                  as: "owner",
+                  attributes: ["id", "fullname", "username"],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    if (rows.length === 0) {
+      throw new CustomError("Siz uchu hech qanday ijara topilmadi.", 404);
+    }
+
+    res.status(200).json({
+      rentals: rows,
+      totalItems: count,
+      currentPage: page,
+      totalPages: Math.ceil(count / size),
+    });
+  } catch (error) {
+    console.error("Error fetching available rentals for user: ", error);
+    next(error);
+  }
 };
