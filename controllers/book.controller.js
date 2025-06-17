@@ -49,7 +49,10 @@ exports.bookController = {
         order: [["id", "ASC"]],
         offset: page * size,
         limit: size,
-        include: [{ model: Category, as: "category" }],
+        include: [
+          { model: Category, as: "category" },
+          { model: BookStatus, as: "status" },
+        ],
       });
 
       res.status(200).json({

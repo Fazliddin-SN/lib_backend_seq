@@ -9,7 +9,7 @@ const indexRouter = require("../routes/index");
 const app = express();
 
 require("../utils/scheduler");
-const PORT = process.env.PORT || 3018;
+const PORT = process.env.PORT || 3020;
 
 //MIDDLE FUNCTIONS
 app.use(cors());

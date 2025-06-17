@@ -72,6 +72,7 @@ exports.authController = {
           id: user.id,
           role_id: user.role_id,
           fullname: user.fullname,
+          email: user.email,
         },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRATION || "1d" }
@@ -79,6 +80,7 @@ exports.authController = {
 
       res.status(200).json({
         message: "Login successfull",
+        user,
         token,
       });
     } catch (error) {

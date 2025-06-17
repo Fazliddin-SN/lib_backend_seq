@@ -34,6 +34,7 @@ module.exports = (sequelize, DataTypes) => {
           key: "library_id",
         },
       },
+      read_count: { type: DataTypes.INTEGER, defaultValue: 0 },
     },
     {
       sequelize,

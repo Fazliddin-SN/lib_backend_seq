@@ -54,6 +54,7 @@ module.exports = {
         },
         onDelete: "CASCADE",
       },
+      read_count: Sequelize.INTEGER,
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

@@ -48,9 +48,9 @@ Object.keys(db).forEach((modelName) => {
 });
 
 // Set up relationships here
-db.BookStatus.hasMany(db.Book, { foreignKey: "id", as: "books" });
+db.BookStatus.hasMany(db.Book, { foreignKey: "status_id", as: "books" });
 db.Book.belongsTo(db.BookStatus, {
-  foreignKey: "id",
+  foreignKey: "status_id",
   as: "status",
 });
 

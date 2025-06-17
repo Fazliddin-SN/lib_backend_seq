@@ -70,6 +70,7 @@ const valRentalSchema = (req, res, next) => {
   req.body = value;
   next();
 };
+
 module.exports = {
   validateUser,
   validateBookSchema,
