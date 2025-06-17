@@ -81,19 +81,19 @@ db.User.hasMany(db.Library, {
 
 db.LibraryMember.belongsTo(db.User, {
   foreignKey: "user_id",
-  as: "users", // 👈 this is important
+  as: "member", // 👈 this is important
 });
 
 db.User.hasMany(db.LibraryMember, {
   foreignKey: "user_id",
-  as: "members", // optional alias
+  as: "member", // optional alias
 });
 
 db.Book.belongsTo(db.Category, {
-  foreignKey: "id",
   as: "category",
+  foreignKey: "category_id",
 });
-db.Category.hasMany(db.Book, { foreignKey: "id", as: "books" });
+db.Category.hasMany(db.Book, { as: "books", foreignKey: "category_id" });
 
 db.Rental.belongsTo(db.RentalStatus, {
   foreignKey: "id",

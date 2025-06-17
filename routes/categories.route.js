@@ -8,7 +8,7 @@ const {
 
 const router = express.Router();
 
-router.get("/", verifyToken, getCategories);
+router.get("/", getCategories);
 router.get("/b-status", getBookStatuses);
 router.get("/r-status", getRentalStatuses);
 module.exports = router;

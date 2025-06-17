@@ -13,7 +13,8 @@ exports.bookController = {
     const page = parseInt(req.query.page) || 0;
     const size = parseInt(req.query.size) || 50;
 
-    const { categoryId, bookTitle, isbn, status_id } = req.query;
+    const { category_id, bookTitle, isbn, status_id } = req.query;
+    // console.log("category id ", category_id);
 
     try {
       const library = await Library.findOne({ where: { owner_id } });
@@ -26,18 +27,20 @@ exports.bookController = {
       // Build the where clause based on query parameters
       const whereClause = {};
 
-      if (categoryId) {
-        whereClause.category_id = categoryId;
+      if (category_id) {
+        whereClause.category_id = category_id;
       }
 
       if (bookTitle) {
         whereClause.title = {
-          [Op.like]: `%${bookTitle}%`, // This allows partial matching
+          [Op.iLike]: `%${bookTitle}%`, // This allows partial matching
         };
       }
 
       if (isbn) {
-        whereClause.isbn = isbn;
+        whereClause.isbn = {
+          [Op.iLike]: `%${isbn}%`,
+        };
       }
 
       if (status_id) {
@@ -54,6 +57,34 @@ exports.bookController = {
           { model: BookStatus, as: "status" },
         ],
       });
+
+      // inside an async handler
+      const promises = rows.map(async (r) => {
+        if (!r.image_path) {
+          r.setDataValue("imageData", null);
+          return;
+        }
+        const filePath = path.join(
+          __dirname,
+          "..",
+          "uploads",
+          "book-images",
+          `book-${r.id}.jpg`
+        );
+        try {
+          const buf = await fs.promises.readFile(filePath);
+
+          const base64 = buf.toString("base64");
+
+          const mime = "image/jpeg"; // or detect by extension
+
+          r.setDataValue("imageData", `data:${mime};base64,${base64}`);
+        } catch {
+          r.setDataValue("imageData", null);
+        }
+      });
+
+      await Promise.all(promises);
 
       res.status(200).json({
         books: rows,
@@ -156,6 +187,7 @@ exports.bookController = {
 
       const updatedData = { ...body };
       const oldImage = book.image_path || null;
+
       if (file) {
         // removing the old image
         if (oldImage && fs.existsSync(oldImage)) {
@@ -169,11 +201,10 @@ exports.bookController = {
 
         await fs.move(oldPath, newPath, { overwrite: true }); // fs-extra move handles file existence better
         updatedData.image_path = newPath;
-
-        const result = await Book.update(updatedData, { where: { id } });
-        if (!result) {
-          throw new CustomError("Kitob tahrirlanmadi.", 400);
-        }
+      }
+      const result = await Book.update(updatedData, { where: { id } });
+      if (!result) {
+        throw new CustomError("Kitob tahrirlanmadi.", 400);
       }
 
       res.status(200).json({
@@ -224,34 +255,56 @@ exports.bookController = {
   },
 
   //GET BOOK BY ID
+  // GET BOOK BY ID
   async getBookById(req, res, next) {
-    const owner_id = req.user.id;
+    const ownerId = req.user.id;
     const { id } = req.params;
+    console.log("book id ", id);
 
     try {
-      const library = await Library.findOne({ where: { owner_id } });
-      if (!library) {
-        throw new CustomError(
-          "Hech qanday kutubxona topilmadi bu user uchun",
-          404
-        );
-      }
+      const library = await Library.findOne({ where: { owner_id: ownerId } });
+      if (!library) throw new CustomError("Kutubxona topilmadi", 404);
 
-      //existing book
       const book = await Book.findOne({
         where: { id, library_id: library.id },
+        include: [
+          { model: Category, as: "category" },
+          { model: BookStatus, as: "status" },
+        ],
       });
-      if (!book) {
-        throw new CustomError("Kitob topilmadi!", 404);
+
+      if (!book) throw new CustomError("Kitob topilmadi!", 404);
+
+      // Build data URI only if an image_path exists
+      let imageData = null;
+      if (book.image_path) {
+        const ext = path.extname(book.image_path);
+        const filename = `book-${id}${ext}`;
+        const filePath = path.join(
+          __dirname,
+          "..",
+          "uploads",
+          "book-images",
+          filename
+        );
+
+        try {
+          const buf = await fs.promises.readFile(filePath);
+          const base64 = buf.toString("base64");
+          const mimeType = `image/${ext.slice(1)}`;
+          imageData = `data:${mimeType};base64,${base64}`;
+        } catch (e) {
+          console.warn(`Failed to load image for book ${id}:`, e);
+          imageData = null;
+        }
       }
 
-      res.status(200).json({
-        book,
-        status: "ok",
-      });
-    } catch (error) {
-      console.error("Failed to fetch book by its id", error);
-      next(error);
+      book.setDataValue("imageData", imageData);
+
+      res.status(200).json({ book, status: "ok" });
+    } catch (err) {
+      console.error("Failed to fetch book by id:", err);
+      next(err);
     }
   },
 };

@@ -19,7 +19,7 @@ router.post(
 
 //update
 router.put(
-  "/:id",
+  "/:id/edit",
   upload.single("image"),
   validateBookSchema,
   verifyToken,

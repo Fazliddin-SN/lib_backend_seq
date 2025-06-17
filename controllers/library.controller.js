@@ -172,7 +172,7 @@ exports.libraryMemberController = {
         offset: size * page,
         limit: size,
         include: [
-          { model: User, as: "user", attributes: { exclude: ["password"] } },
+          { model: User, as: "member", attributes: { exclude: ["password"] } },
         ],
       });
 

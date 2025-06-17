@@ -13,7 +13,7 @@ module.exports = {
       { name: "Sarguzasht", createdAt: new Date(), updatedAt: new Date() },
       { name: "Tarixiy", createdAt: new Date(), updatedAt: new Date() },
       { name: "Triller", createdAt: new Date(), updatedAt: new Date() },
-      { name: "Detektive", createdAt: new Date(), updatedAt: new Date() },
+      { name: "Detektiv", createdAt: new Date(), updatedAt: new Date() },
       { name: "Romantika", createdAt: new Date(), updatedAt: new Date() },
       { name: "Dramatik", createdAt: new Date(), updatedAt: new Date() },
       { name: "Tarix", createdAt: new Date(), updatedAt: new Date() },
