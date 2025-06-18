@@ -96,8 +96,8 @@ db.Book.belongsTo(db.Category, {
 db.Category.hasMany(db.Book, { as: "books", foreignKey: "category_id" });
 
 db.Rental.belongsTo(db.RentalStatus, {
-  foreignKey: "id",
-  as: "rental_status",
+  foreignKey: "status_id",
+  as: "status",
 });
 
 db.Rental.belongsTo(db.User, {
@@ -105,11 +105,6 @@ db.Rental.belongsTo(db.User, {
   as: "member",
 });
 db.Rental.belongsTo(db.Book, { foreignKey: "book_id", as: "book" });
-
-db.RentalStatus.hasMany(db.Rental, {
-  foreignKey: "id",
-  as: "rentals",
-});
 
 ///
 db.LibraryMember.belongsTo(db.Library, {

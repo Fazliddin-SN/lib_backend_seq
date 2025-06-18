@@ -55,10 +55,12 @@ exports.fetchRentals = async (req, res, next) => {
         {
           model: User,
           as: "member",
-          attributes: { exclude: ["password"] },
+          attributes: ["id", "username"],
         },
         {
           model: Book,
+          as: "book",
+          attributes: ["id", "title"],
           include: [
             {
               model: Library,
@@ -71,45 +73,10 @@ exports.fetchRentals = async (req, res, next) => {
                 },
               ],
             },
-            {
-              model: Category,
-              as: "category",
-            },
           ],
         },
       ],
     });
-
-    const rentsss = await Rental.findAndCountAll({
-      where: {
-        owner_id,
-      },
-      order: [["id", "ASC"]],
-      offset: page * size,
-      limit: size,
-      include: [
-        {
-          model: User,
-          as: "member",
-          attributes: { exclude: ["password"] },
-        },
-        {
-          model: Book,
-          include: [
-            {
-              model: Library,
-              as: "library",
-              include: [{ model: User, as: "owner" }],
-            },
-            {
-              model: Category,
-              as: "category",
-            },
-          ],
-        },
-      ],
-    });
-    console.log("rentals ", rentsss);
 
     if (!rows || rows.length === 0) {
       throw new CustomError("Ijaralar topilmadi. ", 404);
@@ -359,7 +326,7 @@ exports.updateRental = async (req, res, next) => {
 exports.updateRentalReturn = async (req, res, next) => {
   const owner_id = req.user.id;
   const { rental_id, book_id } = req.query;
-  console.log("rental data ", rental_id, book_id);
+  // console.log("rental data ", rental_id, book_id);
 
   try {
     const rentalData = await Rental.findOne({
@@ -406,9 +373,19 @@ exports.updateRentalReturn = async (req, res, next) => {
         plain: false,
       }
     );
+
     if (affectedCount === 0) {
       throw new CustomError("Ijara qaytarib berilishi tugallanmadi. ", 400);
     }
+
+    // first bump the counter
+    await Book.increment("read_count", {
+      by: 1,
+      where: { id: book_id },
+    });
+
+    // change book status 'mavjud'
+    await Book.update({ status_id: 1 }, { where: { id: book_id } });
 
     //NOTIFICATIONS HERE
     const ownerTgData = await User.findOne({
@@ -495,6 +472,65 @@ exports.fetchOverDueRentals = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Failed to fetch overdue rentals ", error);
+    next(error);
+  }
+};
+
+exports.fetchRentalById = async (req, res, next) => {
+  const owner_id = req.user.id;
+  const { rental_id } = req.params;
+
+  try {
+    const library = await Library.findOne({ where: { owner_id } });
+    if (!library) {
+      throw new CustomError(
+        "Hech qanday kutubxona topilmadi bu user uchun",
+        404
+      );
+    }
+
+    const rental = await Rental.findOne({
+      where: {
+        id: rental_id,
+      },
+
+      include: [
+        {
+          model: User,
+          as: "member",
+          attributes: ["id", "username"],
+        },
+        {
+          model: Book,
+          as: "book",
+          attributes: ["id", "title"],
+          include: [
+            {
+              model: Library,
+              as: "library",
+              include: [
+                {
+                  model: User,
+                  as: "owner",
+                  attributes: { exclude: ["password"] },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!rental) {
+      throw new CustomError("Bu id bilan ijara topilmadi ", 404);
+    }
+
+    res.status(200).json({
+      rental,
+      status: "ok",
+    });
+  } catch (error) {
+    console.error("Failed to rental data by id ", error);
     next(error);
   }
 };

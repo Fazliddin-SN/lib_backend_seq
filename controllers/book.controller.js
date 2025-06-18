@@ -259,7 +259,7 @@ exports.bookController = {
   async getBookById(req, res, next) {
     const ownerId = req.user.id;
     const { id } = req.params;
-    console.log("book id ", id);
+    // console.log("book id ", id);
 
     try {
       const library = await Library.findOne({ where: { owner_id: ownerId } });
@@ -305,6 +305,32 @@ exports.bookController = {
     } catch (err) {
       console.error("Failed to fetch book by id:", err);
       next(err);
+    }
+  },
+
+  //GET AVAILABLE BOOKS
+  async getAvailableBooks(req, res, next) {
+    const { search = "", page = 0, size = 50 } = req.query;
+
+    try {
+      // Only books with status_id = 1 (available)
+      const where = {
+        status_id: 1,
+        ...(search && { title: { [Op.iLike]: `%${search}%` } }),
+      };
+
+      const books = await Book.findAll({
+        where,
+        order: [["title", "ASC"]],
+        offset: page * size,
+        limit: size,
+        attributes: ["id", "title"],
+      });
+
+      res.json(books);
+    } catch (error) {
+      console.error("Failed to fetch available books ", error);
+      next(error);
     }
   },
 };

@@ -170,6 +170,7 @@ exports.libraryMemberController = {
       if (phonenumber) {
         memberFilters.phonenumber = { [Op.iLike]: `%${phonenumber}%` };
       }
+
       // CHECK LIBARY EXISTS WITH THIS OWNER ID
       const library = await Library.findOne({ where: { owner_id } });
       if (!library) {

@@ -31,9 +31,16 @@ router.put(
 router.delete("/:id", verifyToken, roleGuard(2), bookController.deleteBook);
 
 // get book by its id
-router.get("/:id", verifyToken, roleGuard(2), bookController.getBookById);
+router.get("/:id/edit", verifyToken, roleGuard(2), bookController.getBookById);
 
 //fetch all books
 router.get("/", verifyToken, roleGuard(2), bookController.getBooksByLib);
 
+// fetch available books
+router.get(
+  "/avialable",
+  verifyToken,
+  roleGuard(2),
+  bookController.getAvailableBooks
+);
 module.exports = router;
