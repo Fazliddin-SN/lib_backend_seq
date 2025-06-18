@@ -64,4 +64,12 @@ router.delete(
   libraryMemberController.removeMember
 );
 
+//get member by id
+router.get(
+  "/members/:member_id",
+  verifyToken,
+  roleGuard(2),
+  libraryMemberController.getLibMemberById
+);
+
 module.exports = router;

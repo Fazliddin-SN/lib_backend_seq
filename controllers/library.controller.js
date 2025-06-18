@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const { CustomError } = require("../utils/customError");
 const { Library, User, BookStatus, LibraryMember } = require("../models");
+const { Op } = require("sequelize");
 
 exports.libraryController = {
   // GET ALL LIBRARIES
@@ -151,10 +152,24 @@ exports.libraryMemberController = {
     const page = req.query.page || 0;
     const size = req.query.size || 50;
 
+    const { username, email, phonenumber } = req.query;
+
     try {
       // Build the where clause based on query parameters
       const whereClause = {};
 
+      // 2️ Build the dynamic User filter:
+      const memberFilters = {};
+
+      if (username) {
+        memberFilters.username = { [Op.iLike]: `%${username}%` };
+      }
+      if (email) {
+        memberFilters.email = { [Op.iLike]: `%${email}%` };
+      }
+      if (phonenumber) {
+        memberFilters.phonenumber = { [Op.iLike]: `%${phonenumber}%` };
+      }
       // CHECK LIBARY EXISTS WITH THIS OWNER ID
       const library = await Library.findOne({ where: { owner_id } });
       if (!library) {
@@ -172,7 +187,14 @@ exports.libraryMemberController = {
         offset: size * page,
         limit: size,
         include: [
-          { model: User, as: "member", attributes: { exclude: ["password"] } },
+          {
+            model: User,
+            as: "member",
+            attributes: { exclude: ["password"] },
+            ...(Object.keys(memberFilters).length > 0
+              ? { where: memberFilters }
+              : ""),
+          },
         ],
       });
 
@@ -294,6 +316,8 @@ exports.libraryMemberController = {
     const { member_id } = req.params;
     const owner_id = req.user.id;
     const body = req.body;
+    console.log("body ", body);
+
     try {
       // CHECK LIBARY EXISTS WITH THIS OWNER ID
       const library = await Library.findOne({ where: { owner_id } });
@@ -348,15 +372,12 @@ exports.libraryMemberController = {
       }
 
       // REMOVE MEMBER
-      const deletCount = await LibraryMember.destroy({
+      await LibraryMember.destroy({
         where: {
           user_id: member_id,
           library_id: library.id,
         },
       });
-      if (deletCount === 0) {
-        throw new CustomError("Bu id bilan foydalanuvchi topilmadi.! ", 404);
-      }
 
       res.status(200).json({
         message: "A'zo muvaffaqiyatli o'chirildi.",
@@ -364,6 +385,36 @@ exports.libraryMemberController = {
       });
     } catch (error) {
       console.error("Failed to remove member", error);
+      next(error);
+    }
+  },
+
+  async getLibMemberById(req, res, next) {
+    const { member_id } = req.params;
+    const owner_id = req.user.id;
+    try {
+      // CHECK LIBARY EXISTS WITH THIS OWNER ID
+      const library = await Library.findOne({ where: { owner_id } });
+      if (!library) {
+        throw new CustomError("Bu owner_id bilan kutubxona topilmadi. ", 404);
+      }
+
+      const libMember = await LibraryMember.findOne({
+        where: { user_id: member_id, library_id: library.id },
+        include: [
+          { model: User, as: "member", attributes: { exclude: ["password"] } },
+        ],
+      });
+      if (!libMember || libMember.length === 0) {
+        throw new CustomError("Bu id bilan azo topilmadi", 404);
+      }
+
+      res.status(200).json({
+        member: libMember,
+        status: "ok",
+      });
+    } catch (error) {
+      console.error("Failed to fetch lib member by id", error);
       next(error);
     }
   },
