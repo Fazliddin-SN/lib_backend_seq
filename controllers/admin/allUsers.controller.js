@@ -1,6 +1,7 @@
 const { CustomError } = require("../../utils/customError");
 const { User, UserRoles, Library } = require("../../models");
 const bcrypt = require("bcrypt");
+const user = require("../../models/user");
 exports.fetchAllUsers = async (req, res, next) => {
   const page = req.query.page || 0;
   const size = req.query.size || 50;
@@ -56,6 +57,38 @@ exports.updateUser = async (req, res, next) => {
       updatedUser,
     });
   } catch (error) {
-    console.error(`Foydalanuvchi malumotlari tahrirlanmadi. `, error);
+    console.error(`Failed to update user data. `, error);
+  }
+};
+
+exports.registerUser = async (req, res, next) => {
+  const body = req.body;
+
+  try {
+    const userExist = await User.findOne({
+      where: { email: body.email },
+    });
+    if (userExist) {
+      throw new CustomError(
+        "Bu email bilan allaqachon ro'yxatdan otilgan. ",
+        400
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+
+    const newUser = await User.create(req.body);
+    if (!newUser) {
+      throw new CustomError("Yangi foydalanuvchi qoshilmadi.", 400);
+    }
+
+    res.status(201).json({
+      message: "Yangi foydalanuvchi qoshildi.",
+      status: "ok",
+      user: newUser,
+    });
+  } catch (error) {
+    console.error("Failed to register new User ", error);
+    next(error);
   }
 };

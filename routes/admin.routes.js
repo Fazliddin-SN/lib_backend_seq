@@ -7,6 +7,7 @@ const {
 const {
   fetchAllUsers,
   updateUser,
+  registerUser,
 } = require("../controllers/admin/allUsers.controller");
 const { validateUser } = require("../middlewares/validationMiddleware");
 
@@ -18,6 +19,8 @@ router.put("/libs/:libId", verifyToken, roleGuard(1), updateLib);
 
 router.get("/users", verifyToken, roleGuard(1), fetchAllUsers);
 
+router.post("/users", validateUser, verifyToken, roleGuard(1), registerUser);
+
 router.put(
   "/users/:userId",
   validateUser,
@@ -25,4 +28,5 @@ router.put(
   roleGuard(1),
   updateUser
 );
+
 module.exports = router;
