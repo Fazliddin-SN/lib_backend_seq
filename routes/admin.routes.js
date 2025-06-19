@@ -4,7 +4,11 @@ const {
   fetchLibs,
   updateLib,
 } = require("../controllers/admin/adminActionsController");
-const { fetchAllUsers } = require("../controllers/admin/allUsers.controller");
+const {
+  fetchAllUsers,
+  updateUser,
+} = require("../controllers/admin/allUsers.controller");
+const { validateUser } = require("../middlewares/validationMiddleware");
 
 const router = express.Router();
 
@@ -14,4 +18,11 @@ router.put("/libs/:libId", verifyToken, roleGuard(1), updateLib);
 
 router.get("/users", verifyToken, roleGuard(1), fetchAllUsers);
 
+router.put(
+  "/users/:userId",
+  validateUser,
+  verifyToken,
+  roleGuard(1),
+  updateUser
+);
 module.exports = router;
