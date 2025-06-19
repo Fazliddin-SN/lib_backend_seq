@@ -101,18 +101,22 @@ exports.authController = {
         limit: size,
         include: [
           { model: UserRoles, as: "role" }, // Role info
-          { model: Library, as: "library" }, // for owners
+          // 2️⃣ The library they own (if any)
+          {
+            model: Library,
+            as: "library",
+          },
           {
             model: LibraryMember,
-            as: "members",
+            as: "member",
             include: [
               {
                 model: Library,
                 as: "library",
-                attributes: ["name"],
+                attributes: ["id", "name"],
               },
             ],
-          }, // for regular users
+          },
         ],
       });
 
@@ -131,10 +135,10 @@ exports.authController = {
 
   // DELETE USER
   async deleteUser(req, res, next) {
-    const { id } = req.params;
+    const { userId } = req.params;
     try {
       await User.destroy({
-        where: { id },
+        where: { id: userId },
       });
       res.status(200).json({
         message: "User deleted!",
@@ -149,34 +153,33 @@ exports.authController = {
 
   //UPDATE USER DATA
   async updateUser(req, res, next) {
-    const { id } = req.params;
-    const body = req.body;
+    const { userId } = req.params;
+
     try {
-      // CHECK USER EXISTENCE
-      const user = await User.findOne({ where: { id } });
-      if (!user) {
-        throw new CustomError("Bu id bilan foydalanuvchi topilmadi. ", 404);
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user || user.length === 0) {
+        throw new CustomError("Bu id bilan foydalanuvchi topilmadi ", 404);
       }
-      //HASH THE PASSWORD AND UPDATE DATE
-      const hashedPassword = await bcrypt.hash(body.password, 10);
+
+      // HASH THE PASSWORD AND CREATE NEW USER
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
       const [updatedCount, [updatedUser]] = await User.update(
         {
-          ...body,
+          ...req.body,
           password: hashedPassword,
         },
-        { where: { id }, returning: true }
+        { where: { id: user.id }, returning: true }
       );
       if (updatedCount === 0) {
         throw new CustomError("Foydalanuvchi malumotlari tahrirlanmadi.", 400);
       }
 
       res.status(200).json({
-        message: `Azo malumotlari tahrirlandi. `,
+        message: `Foydalanuvchi malumotlari tahrirlandi. `,
         updatedUser,
       });
     } catch (error) {
-      console.error("Failed to update user data ", error);
-      next(error);
+      console.error(`Failed to update user data. `, error);
     }
   },
 

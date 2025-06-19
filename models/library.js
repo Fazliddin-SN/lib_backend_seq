@@ -14,7 +14,12 @@ module.exports = (sequelize, DataTypes) => {
   Library.init(
     {
       name: { type: DataTypes.STRING, allowNull: false },
-      owner_id: { type: DataTypes.INTEGER, allowNull: false },
+      owner_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE",
+      },
     },
     {
       sequelize,

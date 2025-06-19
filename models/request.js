@@ -17,14 +17,14 @@ module.exports = (sequelize, DataTypes) => {
       owner_id: {
         type: DataTypes.INTEGER,
         references: {
-          model: "Users",
+          model: "User",
           key: "user_id",
         },
       },
       book_id: {
         type: DataTypes.STRING,
         references: {
-          model: "Books",
+          model: "Book",
           key: "book_id",
         },
       },

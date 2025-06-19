@@ -11,10 +11,17 @@ router.post("/login", authController.login);
 // USERS LIST
 router.get("/users", verifyToken, roleGuard(1), authController.usersList);
 // UPDATE USER
-// router.put("users", verifyToken, roleGuard(1), authController.update);
+router.put(
+  "/users/:userId",
+  validateUser,
+  verifyToken,
+  roleGuard(1),
+  authController.updateUser
+);
 //DELETE USER
+
 router.delete(
-  "/:user_id/delete",
+  "/:userId/delete",
   verifyToken,
   roleGuard(1),
   authController.deleteUser
