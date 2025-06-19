@@ -16,16 +16,16 @@ const { datysLeft } = require("../services/rental.service");
 //   { timezone: "Asia/Tashkent" }
 // );
 
-cron.schedule(
-  `*/5 * * * * `,
-  async () => {
-    console.log(
-      `[Scheduler] Running reminder task at ${new Date().toISOString()}`
-    );
+// cron.schedule(
+//   `*/5 * * * * `,
+//   async () => {
+//     console.log(
+//       `[Scheduler] Running reminder task at ${new Date().toISOString()}`
+//     );
 
-    // notifies both member and owner that return date is today
-    notifyDueToday();
-    datysLeft();
-  },
-  { timezone: "Asia/Tashkent" }
-);
+//     // notifies both member and owner that return date is today
+//     notifyDueToday();
+//     datysLeft();
+//   },
+//   { timezone: "Asia/Tashkent" }
+// );
