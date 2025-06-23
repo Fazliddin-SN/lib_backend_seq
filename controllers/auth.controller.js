@@ -187,12 +187,36 @@ exports.authController = {
   async roles(req, res, next) {
     try {
       const roles = await UserRoles.findAll();
-      res.status(200).json(roles);
+      res.status(200).json({
+        roles,
+        status: "ok",
+      });
     } catch (error) {
       console.error("Failed to fetch roles ", error);
       res.status(400).json({
         error: error.message,
       });
+    }
+  },
+  async getUserDetails(req, res, next) {
+    const id = req.user.id;
+
+    try {
+      const user = await User.findOne({
+        where: { id },
+      });
+
+      if (!user) {
+        throw new CustomError("BU id bilan foydalanuvchi topilmadi ", 404);
+      }
+
+      res.status(200).json({
+        user,
+        status: "ok",
+      });
+    } catch (error) {
+      console.error("Failed to fetch user data ", error);
+      next(error);
     }
   },
 };

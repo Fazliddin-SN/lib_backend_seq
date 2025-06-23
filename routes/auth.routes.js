@@ -18,8 +18,8 @@ router.put(
   roleGuard(1),
   authController.updateUser
 );
-//DELETE USER
 
+//DELETE USER
 router.delete(
   "/:userId/delete",
   verifyToken,
@@ -27,7 +27,8 @@ router.delete(
   authController.deleteUser
 );
 
+router.get("/me", verifyToken, authController.getUserDetails);
 //ROLE ROUTE
-router.get("/roles", verifyToken, authController.roles);
+router.get("/roles", authController.roles);
 
 module.exports = router;
