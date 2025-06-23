@@ -1,10 +1,39 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const path = require("path");
+const fs = require("fs-extra");
 require("dotenv").config();
 const { CustomError } = require("../utils/customError.js");
 const { User, UserRoles, Library, LibraryMember } = require("../models");
 
+// load avatar data
+const loadAvatar = async (user) => {
+  if (!user.avatar) {
+    user.setDataValue("imageData", null);
+    return;
+  }
+
+  const filePath = path.join(
+    __dirname,
+    "..",
+    "uploads",
+    "users-avatars",
+    `user-${user.id}.jpg`
+  );
+  try {
+    const buf = await fs.promises.readFile(filePath);
+
+    const base64 = buf.toString("base64");
+
+    // // detect the mime type from its extension
+    // const mimeType = mime.lookup(filePath) || "application/octet-stream";
+    const mimeType = "image/jpeg"; // or detect by extension
+
+    user.setDataValue("imageData", `data:${mimeType};base64,${base64}`);
+  } catch (error) {
+    user.setDataValue("imageData", null);
+  }
+};
 exports.authController = {
   //REGISTER PROCESS
   async register(req, res, next) {
@@ -53,12 +82,13 @@ exports.authController = {
     try {
       const { username, password } = req.body;
       // CHECK IF USER EXISTS
-      console.log("username ", password, username);
 
       const user = await User.findOne({ where: { username } });
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+
+      await loadAvatar(user);
 
       // Check password
       const validPassword = await bcrypt.compare(password, user.password);
@@ -204,18 +234,67 @@ exports.authController = {
     try {
       const user = await User.findOne({
         where: { id },
+        attributes: { exclude: ["password"] },
       });
 
       if (!user) {
         throw new CustomError("BU id bilan foydalanuvchi topilmadi ", 404);
       }
 
-      res.status(200).json({
+      await loadAvatar(user);
+
+      await res.status(200).json({
         user,
         status: "ok",
       });
     } catch (error) {
       console.error("Failed to fetch user data ", error);
+      next(error);
+    }
+  },
+
+  async editProfile(req, res, next) {
+    const id = req.user.id;
+    try {
+      const body = req.body;
+      const file = req.file;
+
+      //existing book
+      const user = await User.findOne({
+        where: { id },
+      });
+      if (!user) {
+        throw new CustomError("Foydalanuvchi topilmadi!", 404);
+      }
+
+      const updatedData = { ...body };
+      const oldImage = user.avatar || null;
+
+      if (file) {
+        if (oldImage && fs.existsSync(oldImage)) {
+          await fs.remove(oldImage);
+        }
+        const oldPath = file.path;
+
+        const ext = path.extname(file.originalname);
+        const newFileName = `user-${user.id}${ext}`;
+
+        const newPath = path.join("uploads", "users-avatars", newFileName);
+
+        await fs.move(oldPath, newPath, { overwrite: true }); // fs-extra move handles file existence better
+        updatedData.avatar = newPath;
+      }
+
+      const result = await User.update(updatedData, { where: { id } });
+      if (!result) {
+        throw new CustomError("Profile tahrirlanmadi.", 400);
+      }
+
+      res.status(200).json({
+        message: "Profile tahrirlandi",
+      });
+    } catch (error) {
+      console.error("Failed to update the Profile data ", error);
       next(error);
     }
   },

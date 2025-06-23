@@ -5,8 +5,6 @@ const {
   updateLib,
 } = require("../controllers/admin/adminActionsController");
 
-const { validateUser } = require("../middlewares/validationMiddleware");
-
 const router = express.Router();
 
 router.get("/libs", verifyToken, roleGuard(1), fetchLibs);
