@@ -5,6 +5,7 @@ const {
   getLibsDetailsForMembers,
   getAllAvailableBooksForMem,
   getBorrowedBooks,
+  getReadBooks,
 } = require("../controllers/members.controller");
 
 const router = express.Router();
@@ -22,5 +23,8 @@ router.get(
 
 // get borrowed books
 router.get("/borrowed-books", verifyToken, roleGuard(3), getBorrowedBooks);
+
+// get the books that user has read
+router.get("/read-books", verifyToken, roleGuard(3), getReadBooks);
 
 module.exports = router;

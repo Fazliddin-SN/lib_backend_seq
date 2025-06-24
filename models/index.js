@@ -121,6 +121,7 @@ db.Review.belongsTo(db.User, {
 
 db.Review.belongsTo(db.Book, {
   foreignKey: "book_id",
+  as: "book",
 });
 
 db.Review.belongsToMany(db.Tag, {
@@ -128,6 +129,28 @@ db.Review.belongsToMany(db.Tag, {
   foreignKey: "taggable_id",
   constraints: false,
   scope: { taggable_type: "Review" },
+});
+
+db.ReadBooks.belongsTo(db.User, {
+  foreignKey: "user_id",
+  as: "member",
+});
+
+db.User.hasMany(db.ReadBooks, {
+  foreignKey: "user_id",
+  as: "readBooks",
+});
+
+// each ReadBooks record belongs to one Book
+db.ReadBooks.belongsTo(db.Book, {
+  foreignKey: "book_id",
+  as: "book",
+});
+
+// and, if you need the inverse, each Book has many ReadBooks
+db.Book.hasMany(db.ReadBooks, {
+  foreignKey: "book_id",
+  as: "readBooks", // or whatever alias makes sense
 });
 
 db.sequelize = sequelize;

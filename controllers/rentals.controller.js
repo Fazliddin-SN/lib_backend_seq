@@ -7,6 +7,7 @@ const {
   Category,
   RentalStatus,
   Rental,
+  ReadBooks,
 } = require("../models");
 const { Op, fn, literal, where, col } = require("sequelize");
 const { notifyMember, notifyOwner } = require("./notifications.controller");
@@ -99,6 +100,7 @@ exports.fetchRentals = async (req, res, next) => {
 // create rental
 exports.createRental = async (req, res, next) => {
   const owner_id = req.user.id;
+
   const { user_id, book_id, rental_date, due_date, return_date } = req.body;
   try {
     //parse into jsDates
@@ -138,9 +140,10 @@ exports.createRental = async (req, res, next) => {
 
     const book = await Book.findOne({
       where: { id: book_id },
+      attributes: ["title", "author", "isbn", "id"],
     });
-    if (!book || book.length === 0) {
-      throw new CustomError("Kitob topilmadi bu id bilan!");
+    if (!book) {
+      throw new CustomError("Kitob topilmadi bu id bilan!", 404);
     }
 
     const newRental = await Rental.create({
@@ -201,7 +204,7 @@ exports.createRental = async (req, res, next) => {
       rental: newRental,
     });
   } catch (error) {
-    console.error("Failed to create new rental", 400);
+    console.error("Failed to create new rental", error);
     next(error);
   }
 };
@@ -389,6 +392,12 @@ exports.updateRentalReturn = async (req, res, next) => {
     // change book status 'mavjud'
     await Book.update({ status_id: 1 }, { where: { id: book_id } });
 
+    //create new data for member who has read the book
+    await ReadBooks.create({
+      user_id: member.id,
+      book_id: book.id,
+      returned_on: literal("CURRENT_DATE"),
+    });
     //NOTIFICATIONS HERE
     const ownerTgData = await User.findOne({
       where: { id: owner_id },

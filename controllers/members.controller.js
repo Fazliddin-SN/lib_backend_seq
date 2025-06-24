@@ -6,6 +6,7 @@ const {
   LibraryMember,
   Category,
   Rental,
+  ReadBooks,
 } = require("../models");
 const { Op } = require("sequelize");
 
@@ -186,6 +187,42 @@ exports.getBorrowedBooks = async (req, res, next) => {
     });
   } catch (error) {
     console.error("Error fetching available rentals for user: ", error);
+    next(error);
+  }
+};
+
+// fetching books that the requester user has read
+exports.getReadBooks = async (req, res, next) => {
+  const { id } = req.user.id;
+  const page = req.query.page || 0;
+  const size = req.query.size || 50;
+
+  try {
+    const { count, rows } = await ReadBooks.findAndCountAll({
+      where: { user_id: id },
+      include: [
+        {
+          model: Book,
+          as: "book",
+          include: [
+            { model: Library, as: "library", attributes: ["id", "name"] },
+          ],
+        },
+      ],
+      order: [["returned_on", "ASC"]],
+      offset: page * size,
+      limit: size,
+    });
+
+    req.status(200).json({
+      readBooks: rows,
+      currentPage: page,
+      totalItems: count,
+      totalPages: Math.ceil(count / size),
+      status: "ok",
+    });
+  } catch (error) {
+    console.error("Error fetching read books for user: ", error);
     next(error);
   }
 };
