@@ -30,4 +30,8 @@ router.use("/members", membersRoute);
 const rentalRoute = require("./rentals.route");
 router.use("/rentals", rentalRoute);
 
+// Reviews Route
+const reviewRoute = require("./review.routes");
+router.use("/", reviewRoute);
+
 module.exports = router;

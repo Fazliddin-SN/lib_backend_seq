@@ -38,19 +38,6 @@ module.exports = (sequelize, DataTypes) => {
       underscored: true,
     }
   );
-  Review.associate = (models) => {
-    Review.belongsTo(models.User, { foreignKey: "user_id" });
-    Review.belongsTo(models.Book, { foreignKey: "book_id" });
-    Review.belongsToMany(models.Tag, {
-      through: models.Tagging,
-      foreignKey: "taggable_id",
-      constraints: false,
-      scope: { taggable_type: "Review" },
-    });
-    Review.hasMany(models.Upvote, {
-      foreignKey: "target_id",
-      scope: { target_type: "Review" },
-    });
-  };
+
   return Review;
 };

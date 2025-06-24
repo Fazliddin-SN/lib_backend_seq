@@ -83,7 +83,9 @@ exports.authController = {
       const { username, password } = req.body;
       // CHECK IF USER EXISTS
 
-      const user = await User.findOne({ where: { username } });
+      const user = await User.findOne({
+        where: { username },
+      });
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -110,7 +112,6 @@ exports.authController = {
 
       res.status(200).json({
         message: "Login successfull",
-        user,
         token,
       });
     } catch (error) {

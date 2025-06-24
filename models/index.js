@@ -112,6 +112,24 @@ db.LibraryMember.belongsTo(db.Library, {
   as: "library",
 });
 
+// review
+
+db.Review.belongsTo(db.User, {
+  foreignKey: "user_id",
+  as: "author",
+});
+
+db.Review.belongsTo(db.Book, {
+  foreignKey: "book_id",
+});
+
+db.Review.belongsToMany(db.Tag, {
+  through: db.Tagging,
+  foreignKey: "taggable_id",
+  constraints: false,
+  scope: { taggable_type: "Review" },
+});
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
