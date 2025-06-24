@@ -5,6 +5,7 @@ const {
   Book,
   LibraryMember,
   Category,
+  RentalStatus,
   Rental,
 } = require("../models");
 const { Op, fn, literal, where, col } = require("sequelize");
@@ -47,6 +48,7 @@ exports.fetchRentals = async (req, res, next) => {
     const { count, rows } = await Rental.findAndCountAll({
       where: {
         owner_id,
+        status_id: 1,
       },
       order: [["id", "ASC"]],
       offset: page * size,
@@ -436,6 +438,9 @@ exports.updateRentalReturn = async (req, res, next) => {
 // FETCHING OVER DUE RENTALS
 exports.fetchOverDueRentals = async (req, res, next) => {
   const owner_id = req.user.id;
+  const page = req.query.page || 0;
+  const size = req.query.size || 50;
+
   try {
     const library = await Library.findOne({ where: { owner_id } });
     if (!library) {
@@ -445,11 +450,12 @@ exports.fetchOverDueRentals = async (req, res, next) => {
       );
     }
 
-    const overDueRentals = await Rental.findAll({
+    const { count, rows } = await Rental.findAndCountAll({
       where: {
         owner_id,
         actual_return_date: null,
         return_date: { [Op.lt]: fn("NOW") },
+        status_id: 3,
       },
       include: [
         { model: Book, as: "book" },
@@ -458,16 +464,22 @@ exports.fetchOverDueRentals = async (req, res, next) => {
           as: "member",
           attributes: ["username", "fullname", "phonenumber"],
         },
+        { model: RentalStatus, as: "status" },
       ],
       order: [["return_date", "ASC"]],
+      offset: page * size,
+      limit: size,
     });
 
-    if (!overDueRentals || overDueRentals.length === 0) {
+    if (!rows || rows.length === 0) {
       throw new CustomError("Sizda kechikkan ijaralar mavjud emas.", 404);
     }
 
     res.status(200).json({
-      overDueRentals,
+      overDueRentals: rows,
+      totalItems: count,
+      totalPages: Math.ceil(count / size),
+      currentPage: page,
       status: "ok",
     });
   } catch (error) {
